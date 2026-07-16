@@ -6,7 +6,6 @@ import { scanCore, scanBarcode } from '@kit.ScanKit';
 // 导入默认界面需要的日志模块和错误码模块
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { BusinessError, deviceInfo } from '@kit.BasicServicesKit';
-import { systemShare, harmonyShare } from '@kit.ShareKit';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { util } from '@kit.ArkTS';
 import { uniformTypeDescriptor as utd } from '@kit.ArkData';
@@ -25,14 +24,6 @@ import router from '@ohos.router';
 import { image } from '@kit.ImageKit';
 import KnockShareGuideCard, { CardRes } from '../model/KnockShareGuideCard';
 import { WindowInfo } from '../utils/WindowInfo';
-
-// 跨设备协作相关
-import {
-  createCollaborationServiceMenuItems,
-  CollaborationServiceStateDialog,
-  CollaborationServiceFilter,
-  CollaborationDeviceFilterType
-} from '@kit.ServiceCollaborationKit';
 
 interface myParams {
   uri: string
@@ -192,44 +183,6 @@ export struct HomePage {
       promptAction.showToast({ message: '分享失败: ' + error.message });
     });
   }*/
-  // 本地
-  private async DownloadaLOCAL(): Promise<void> {
-    const filePath = filesDir + '/CIcon.png';
-    return new Promise((resolve, reject) => {
-      request.downloadFile(context, {
-        url: this.sharepng,
-        filePath: filePath
-      }).then((downloadTask: request.DownloadTask) => {
-        downloadTask.on('complete', async () => {
-          // 验证文件是否下载成功
-          try {
-            const stat = await fs.stat(filePath);
-            if (stat.size > 0) {
-              console.info(`CIcon.png download complete, size: ${stat.size}`);
-              resolve();
-            } else {
-              console.error('CIcon.png downloaded but size is 0');
-              reject(-1);
-            }
-          } catch (err) {
-            console.error('CIcon.png stat failed:', err);
-            reject(err);
-          }
-        });
-        downloadTask.on('fail', (err: number) => {
-          console.error(`CIcon.png download failed: ${err}`);
-          reject(err);
-        });
-      }).catch((err: BusinessError) => {
-        console.error(`DownloadaLOCAL failed: ${err.code}, ${err.message}`);
-        reject(err);
-      });
-    });
-  }
-  // 判断是否为本地文件
-  private isLocalFile(path: string): boolean {
-    return path.startsWith('file://') || path.startsWith('/data/') || path.startsWith('/storage/');
-  }
 
   private async share() {
     let uiContext: UIContext = this.getUIContext();
@@ -238,30 +191,6 @@ export struct HomePage {
       return;
     }
     let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
-
-    // 判断是否为本地视频
-    if (this.isLocalFile(this.networkVideoSrc)) {
-      // 本地视频分享
-      try {
-        let shareData: systemShare.SharedData = new systemShare.SharedData({
-          utd: utd.UniformDataType.VIDEO,
-          uri: this.networkVideoSrc,
-        });
-        let controller: systemShare.ShareController = new systemShare.ShareController(shareData);
-        controller.show(context, {
-          previewMode: systemShare.SharePreviewMode.DEFAULT,
-          selectionMode: systemShare.SelectionMode.SINGLE
-        }).then(() => {
-          console.info('ShareController show success.');
-        }).catch((error: BusinessError) => {
-          console.error(`ShareController show error. code: ${error.code}, message: ${error.message}`);
-        });
-      } catch (error) {
-        console.error('分享本地视频失败:', error);
-        promptAction.showToast({ message: $r('app.string.share_failed') });
-      }
-      return;
-    }
 
     // 网络链接分享
     let contextFaker: Context = uiContext.getHostContext() as Context;
@@ -281,19 +210,6 @@ export struct HomePage {
       needDownload = true;
     }
 
-    if (needDownload) {
-      try {
-        // 先删除可能存在的空文件
-        try {
-          await fs.unlink(thumbnailPath);
-        } catch {}
-        await this.DownloadaLOCAL();
-      } catch (error) {
-        console.error('下载缩略图失败:', error);
-      }
-    }
-
-    try {
       let imageSource: image.ImageSource = image.createImageSource(thumbnailPath);
       let imagePacker: image.ImagePacker = image.createImagePacker();
       let buffer: ArrayBuffer = await imagePacker.packToData(imageSource, {
@@ -301,86 +217,8 @@ export struct HomePage {
         quality: 30
       });
 
-      // 释放图像资源
-      imagePacker.release();
-      imageSource.release();
-
-      let shareData: systemShare.SharedData = new systemShare.SharedData({
-        utd: utd.UniformDataType.HYPERLINK,
-        content: this.networkVideoSrc,
-        title: context.resourceManager.getStringSync($r('app.string.shareinfo').id),
-        description: this.networkVideoSrc,
-        thumbnail: new Uint8Array(buffer),
-      });
-      let controller: systemShare.ShareController = new systemShare.ShareController(shareData);
-      controller.show(context, {
-        previewMode: systemShare.SharePreviewMode.DEFAULT,
-        selectionMode: systemShare.SelectionMode.SINGLE
-      }).then(() => {
-        console.info('ShareController show success.');
-      }).catch((error: BusinessError) => {
-        console.error(`ShareController show error. code: ${error.code}, message: ${error.message}`);
-      });
-    } catch (error) {
-      console.error('分享处理失败:', error);
-      // 缩略图处理失败时，尝试不带缩略图分享
-      let shareData: systemShare.SharedData = new systemShare.SharedData({
-        utd: utd.UniformDataType.HYPERLINK,
-        content: this.networkVideoSrc,
-        title: context.resourceManager.getStringSync($r('app.string.shareinfo').id),
-        description: this.networkVideoSrc,
-      });
-      let controller: systemShare.ShareController = new systemShare.ShareController(shareData);
-      controller.show(context, {
-        previewMode: systemShare.SharePreviewMode.DEFAULT,
-        selectionMode: systemShare.SelectionMode.SINGLE
-      });
-    }
   }
 
-  //碰一碰分享
-  private async DownloadToSandbox() {
-    try {
-      console.log('downloadTask filesDir' + filesDir + '/pengyipeng.jpg');
-      //下载文件
-      request.downloadFile(context, {
-        //url: 'https://act-webstatic.mihoyo.com/event-static/2023/08/15/cc72ddf351003a4a9b618e5f4697dad0_2771553456903788244.jpg',
-        url: 'https://www.hnyqwq.cn/hvideo/share.png',
-        filePath: filesDir + '/pengyipeng.jpg'
-      }).then((downloadTask: request.DownloadTask) => {
-        //开启回调
-        downloadTask.on('complete', () => {
-          console.info('downloadTask1 complete');
-        })
-      }).catch((err: BusinessError) => {
-        console.error('Invoke downloadTask failed, code is ${err.code}, message is ${err.message}');
-      });
-    } catch (error) {
-      let err: BusinessError = error as BusinessError;
-      console.error('Invoke downloadTask downloadFile failed, code is ${err.code}, message is ${err.message}');
-    }
-  }
-
-  private async DownloadVideoToSandbox() {
-    try {
-      console.log('downloadTask filesDir' + filesDir + '/download.mp4');
-      //下载文件
-      request.downloadFile(context, {
-        url: this.networkVideoSrc,
-        filePath: filesDir + '/download.mp4'
-      }).then((downloadTask: request.DownloadTask) => {
-        //开启回调
-        downloadTask.on('complete', () => {
-          console.info('downloadTask1 complete');
-        })
-      }).catch((err: BusinessError) => {
-        console.error('Invoke downloadTask failed, code is ${err.code}, message is ${err.message}');
-      });
-    } catch (error) {
-      let err: BusinessError = error as BusinessError;
-      console.error('Invoke downloadTask downloadFile failed, code is ${err.code}, message is ${err.message}');
-    }
-  }
 
   isValidUrl(url: string): boolean {
     const pattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
@@ -394,10 +232,6 @@ export struct HomePage {
 
   aboutToAppear(): void {
     console.info(`[HomePage] aboutToAppear: currentBreakpointForUI=${this.mainWindowInfo.widthBp}`);
-    this.DownloadaLOCAL();
-    this.DownloadToSandbox();
-    this.whiteListening()
-    this.immersiveListening();
     // 判断设备是否支持碰一碰分享：具备 HarmonyShare 能力且非大屏（lg/xl）
     this.isKnockShareSupported = canIUse('SystemCapability.Collaboration.HarmonyShare')
     let context = getContext(this);
@@ -426,14 +260,10 @@ export struct HomePage {
     }
     // 触发视频加载
     this.context.eventHub.on('urlUpdate', this.urlUpdateCallback)
-
-    context.eventHub.on('onBackGround', this.onBackGround);
   }
 
   aboutToDisappear(): void {
     logger.info('aboutToDisappear invoked.');
-    this.whiteDisablingListening()
-    this.immersiveDisablingListening();
     let context = getContext(this);
 
     // 清理所有定时器
@@ -451,91 +281,6 @@ export struct HomePage {
     }).catch((err: Error) => {
       console.error('恢复状态栏失败:', err);
     });
-  }
-
-  private onBackGround = () => {
-    this.whiteDisablingListening()
-    this.immersiveDisablingListening();
-  }
-
-  // 在类成员变量区域定义箭头函数绑定回调
-  private whiteCallback = (sharableTarget: harmonyShare.SharableTarget): void => {
-    // 直接处理分享数据（假设数据已通过其他方式传递）
-    const sharedUrl = AppStorage.get<string>('sharedVideoUrl');
-    if (sharedUrl && this.isValidUrl(sharedUrl)) {
-      this.networkVideoSrc = sharedUrl;
-      this.controller.start();
-      AppStorage.delete('sharedVideoUrl');
-    }
-
-    // 检查是否有可分享的内容
-    if (!this.networkVideoSrc || !this.isValidUrl(this.networkVideoSrc)) {
-      let ctx = this.getUIContext().getHostContext() as common.UIAbilityContext;
-      sharableTarget.clarifyNonShare({ message: ctx.resourceManager.getStringSync($r('app.string.nopengsystem').id) });
-      return;
-    }
-
-    let context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-    let filePath = this.context?.filesDir + "/pengyipeng.jpg";
-    let shareData: systemShare.SharedData = new systemShare.SharedData({
-      utd: utd.UniformDataType.HYPERLINK,
-      content: this.networkVideoSrc,
-      thumbnailUri: fileUri.getUriFromPath(filePath),
-      title: context.resourceManager.getStringSync($r('app.string.pengyipeng_title').id),
-      description: context.resourceManager.getStringSync($r('app.string.pengyipeng_description').id)
-    });
-    sharableTarget.share(shareData);
-  }
-
-  // 修改事件监听与解绑逻辑
-  private whiteListening() {
-    if (this.isNoListening()) {
-      harmonyShare.on('knockShare', this.whiteCallback);
-      this.whiteStatus = true;
-    } else {
-      promptAction.showToast({ message: $r('app.string.nopeng') });
-    }
-  }
-
-  private whiteDisablingListening() {
-    harmonyShare.off('knockShare', this.whiteCallback);
-    this.whiteStatus = false;
-  }
-
-  private immersiveCallback = (sharableTarget: harmonyShare.SharableTarget) => {
-    // 直接处理分享数据（假设数据已通过其他方式传递）
-    const sharedUrl = AppStorage.get<string>('sharedVideoUrl');
-    if (sharedUrl && this.isValidUrl(sharedUrl)) {
-      this.networkVideoSrc = sharedUrl;
-      this.controller.start();
-      AppStorage.delete('sharedVideoUrl');
-    }
-
-    // 检查是否有可分享的内容
-    if (!this.networkVideoSrc || !this.isValidUrl(this.networkVideoSrc)) {
-      let ctx = this.getUIContext().getHostContext() as common.UIAbilityContext;
-      sharableTarget.clarifyNonShare({ message: ctx.resourceManager.getStringSync($r('app.string.nopengsystem').id) });
-      return;
-    }
-
-    let context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-    let filePath = this.context?.filesDir + "/pengyipeng.jpg";
-    let shareData: systemShare.SharedData = new systemShare.SharedData({
-      utd: utd.UniformDataType.HYPERLINK,
-      content: this.networkVideoSrc,
-      thumbnailUri: fileUri.getUriFromPath(filePath),
-      title: context.resourceManager.getStringSync($r('app.string.pengyipeng_title').id),
-      description: context.resourceManager.getStringSync($r('app.string.gekong_description').id)
-    });
-    sharableTarget.share(shareData);
-  }
-
-  private immersiveListening() {
-    harmonyShare.on('gesturesShare', this.immersiveCallback);
-  }
-
-  private immersiveDisablingListening() {
-    harmonyShare.off('gesturesShare', this.immersiveCallback);
   }
 
   //碰一碰分享
@@ -639,14 +384,6 @@ export struct HomePage {
     this.controller.start()
   }
 
-  private handleImageUpdate() {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.updateImageExtension();
-      this.DownloadToSandbox();
-    }, 1000);
-  }
-
   private updateImageExtension() {
     // 根据URL更新图片扩展名
   }
@@ -746,8 +483,6 @@ export struct HomePage {
           this.callFilePickerSelectImage();
         }
       })
-      createCollaborationServiceMenuItems([CollaborationServiceFilter.VIDEO_PICKER], 1,
-        [CollaborationDeviceFilterType.PHONE, CollaborationDeviceFilterType.TABLET, CollaborationDeviceFilterType.PC_2IN1])
     }
   }
 
@@ -1190,10 +925,6 @@ export struct HomePage {
               alignItems: ItemAlign.Center,
               justifyContent: FlexAlign.Center
             }) {
-              CollaborationServiceStateDialog({
-                onState: (stateCode: number, bufferType: string, buffer: ArrayBuffer): void => this.doInsertVideo(stateCode,
-                  bufferType, buffer)
-              })
               SymbolGlyph($r('sys.symbol.folder_badge_eye'))
                 .fontSize(22)
                 .fontColor([$r('sys.color.ohos_id_color_activated')])
@@ -1458,16 +1189,12 @@ export struct HomePage {
         .javaScriptAccess(true)
         .domStorageAccess(true)
         .mixedMode(MixedMode.All)
-        .userAgent('Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36')
         .onPageEnd(() => {
           this.loadProgress = 100;
           promptAction.showToast({ message: $r('app.string.page_load_complete') });
         })
         .onProgressChange((event) => {
           if (event?.newProgress !== undefined) this.loadProgress = event.newProgress;
-        })
-        .onSslErrorReceive((event) => {
-          if (event && event.handler) (event.handler as (confirm: boolean) => void)(true);
         })
     }
     .width('100%')

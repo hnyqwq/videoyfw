@@ -4,15 +4,8 @@ import { HomePage } from '../pages/HomePage';
 import { SecondPage } from '../pages/SecondPage';
 import { MinePage } from '../pages/MinePage';
 import { router } from '@kit.ArkUI';
-import { preferences } from '@kit.ArkData';
-import type { common } from '@kit.AbilityKit';
-import { deviceInfo } from '@kit.BasicServicesKit';
 import { common as abilityCommon } from '@kit.AbilityKit';
-import { HdsTabs, HdsTabsController, hdsMaterial } from '@kit.UIDesignKit';
 import { WindowUtil } from '../utils/WindowUtil';
-import { WindowInfo } from '../utils/WindowInfo';
-
-const PREFERENCES_NAME = 'app_settings'; // 与 infoPage.ets 保持一致
 
 @Component
 export struct HomeImmersive {
@@ -25,10 +18,6 @@ export struct HomeImmersive {
   @State secondLevelIndex: number = 0;
   @State tabViewModel: TabViewModel = new TabViewModel();
   @State tabData: TabDataModel = this.tabViewModel.getTabMap();
-  @State customMaterialLevel: number = hdsMaterial.MaterialLevel.SMOOTH;
-  @State customMaterialType: number = hdsMaterial.MaterialType.ADAPTIVE;
-  private controller: HdsTabsController = new HdsTabsController();
-  private preferences: preferences.Preferences | null = null;
   private shortcutNavigateCallback = (url: string) => {
     console.info('HomeImmersive: 收到快捷方式导航事件, url=', url);
     router.pushUrl({ url: url }).catch((err: Error) => {
@@ -45,31 +34,6 @@ export struct HomeImmersive {
       console.error('HomeImmersive: Failed to subscribe shortcutNavigate event:', e);
     }
 
-    // 初始化材质设置
-    try {
-      let materialTypes: Array<hdsMaterial.MaterialType> = hdsMaterial.getSystemMaterialTypes();
-      console.info('HomeImmersive: 支持的材质类型:', JSON.stringify(materialTypes));
-
-      let hasImmersive: boolean = materialTypes.some((t: hdsMaterial.MaterialType) => t === hdsMaterial.MaterialType.IMMERSIVE);
-
-      if (materialTypes.length === 0) {
-        this.customMaterialLevel = hdsMaterial.MaterialLevel.SMOOTH;
-        this.customMaterialType = hdsMaterial.MaterialType.ADAPTIVE;
-      } else if (!hasImmersive) {
-        this.customMaterialLevel = hdsMaterial.MaterialLevel.GENTLE;
-        this.customMaterialType = hdsMaterial.MaterialType.ADAPTIVE;
-      } else {
-        this.customMaterialLevel = hdsMaterial.MaterialLevel.EXQUISITE;
-        this.customMaterialType = hdsMaterial.MaterialType.IMMERSIVE;
-      }
-      console.info('HomeImmersive: materialType:', this.customMaterialType, ', materialLevel:', this.customMaterialLevel);
-    } catch (err) {
-      console.error('HomeImmersive: Failed to get material types:', err);
-    }
-
-    // 从 Preferences 读取沉浸式Tab开关状态
-    this.loadImmersiveTabSetting();
-
     // 初始化当前Tab索引
     AppStorage.setOrCreate('currentTabIndex', 0);
 
@@ -84,23 +48,6 @@ export struct HomeImmersive {
 
     // 接续跳转
     this.checkContinuationNavigation();
-  }
-
-  // 从 Preferences 加载沉浸式Tab设置
-  private async loadImmersiveTabSetting(): Promise<void> {
-    try {
-      const context = getContext(this) as abilityCommon.UIAbilityContext;
-      this.preferences = await preferences.getPreferences(context, PREFERENCES_NAME);
-      const savedValue = await this.preferences.get('isImmersiveTab', true) as boolean; // 默认开启沉浸式Tab
-      this.isImmersiveTab = savedValue;
-      AppStorage.setOrCreate('isImmersiveTab', savedValue);
-      console.info('HomeImmersive: 从Preferences加载isImmersiveTab =', savedValue);
-    } catch (err) {
-      console.error('HomeImmersive: Failed to load immersive tab setting:', err);
-      // 加载失败时使用默认值
-      this.isImmersiveTab = true;
-      AppStorage.setOrCreate('isImmersiveTab', true);
-    }
   }
 
   aboutToDisappear(): void {
@@ -187,81 +134,7 @@ export struct HomeImmersive {
   }
 
   build() {
-    if (this.isImmersiveTab) {
-      // 沉浸式Tab模式（HdsTabs）— 使用当前项目的底部避让逻辑
-      HdsTabs({ controller: this.controller, index: this.firstLevelIndex }) {
-        TabContent() {
-          HomePage({ mainWindowInfo: this.windowUtil!.mainWindowInfo })
-        }
-        .tabBar(this.tabBuilder(this.tabData.getFirstList()[0], 0))
-
-        TabContent() {
-          SecondPage({ mainWindowInfo: this.windowUtil!.mainWindowInfo })
-        }
-        .tabBar(this.tabBuilder(this.tabData.getFirstList()[1], 1))
-
-        TabContent() {
-          MinePage()
-        }
-        .tabBar(this.tabBuilder(this.tabData.getFirstList()[2], 2))
-      }
-      .barOverlap(true)
-      .barPosition(BarPosition.End)
-      .vertical(false)
-      .barFloatingStyle({
-        barBottomMargin: px2vp(this.bottomRectHeight) > 0 ? px2vp(this.bottomRectHeight) : 28,
-        gradientMask: { maskColor: '#66F1F3F5', maskHeight: 92 },
-        systemMaterialEffect: {
-          materialType: hdsMaterial.MaterialType.IMMERSIVE,
-          materialLevel: this.customMaterialLevel
-        }
-      })
-      .onChange((index: number) => {
-        this.firstLevelIndex = index;
-        AppStorage.setOrCreate('currentTabIndex', index);
-      })
-      .scrollable(false)
-      .height('100%')
-      .width('100%')
-      .expandSafeArea([SafeAreaType.SYSTEM])
-    } else if (this.isTabletMode()) {
-      // 传统Tab模式 - 平板：左侧垂直Tab栏
-      Tabs({
-        barPosition: BarPosition.Start,
-        index: this.firstLevelIndex
-      }) {
-        TabContent() {
-          HomePage({ mainWindowInfo: this.windowUtil!.mainWindowInfo })
-        }
-        .tabBar(this.tabBuilder(this.tabData.getFirstList()[0], 0))
-
-        TabContent() {
-          SecondPage({ mainWindowInfo: this.windowUtil!.mainWindowInfo })
-        }
-        .tabBar(this.tabBuilder(this.tabData.getFirstList()[1], 1))
-
-        TabContent() {
-          MinePage()
-        }
-        .tabBar(this.tabBuilder(this.tabData.getFirstList()[2], 2))
-      }
-      .barBackgroundColor($r('app.color.start_window_background'))
-      .barWidth(96)
-      .barHeight('100%')
-      .barMode(BarMode.Scrollable, { nonScrollableLayoutStyle: LayoutStyle.ALWAYS_CENTER })
-      .barBackgroundBlurStyle(BlurStyle.COMPONENT_THICK)
-      .vertical(true)
-      .onChange((index: number) => {
-        this.firstLevelIndex = index;
-        AppStorage.setOrCreate('currentTabIndex', index);
-      })
-      .scrollable(false)
-      .height('100%')
-      .width('100%')
-      .expandSafeArea([SafeAreaType.SYSTEM])
-    } else {
-      // 传统Tab模式 - 手机：底部Tab栏
-      Tabs({
+    Tabs({
         barPosition: BarPosition.End,
         index: this.firstLevelIndex
       }) {
@@ -292,5 +165,4 @@ export struct HomeImmersive {
       .expandSafeArea([SafeAreaType.SYSTEM])
       .padding({ bottom: px2vp(this.bottomRectHeight) })
     }
-  }
 }

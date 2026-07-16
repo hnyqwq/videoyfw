@@ -180,13 +180,10 @@ export struct KnockShareSingleGuideCard {
 
       if (response.responseCode === 200 && response.result instanceof ArrayBuffer) {
         imageSource = image.createImageSource(response.result);
-        src = await imageSource.createPixelMapUsingAllocator({}, image.AllocatorType.DMA);
       }
       httpRequest.destroy();
     } catch (err) {
       logger.error(`Failed to load by network: ${err?.code}, ${err?.message}`);
-    } finally {
-      imageSource?.release();
     }
 
     return {

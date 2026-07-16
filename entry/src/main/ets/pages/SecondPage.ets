@@ -2,7 +2,6 @@ import { common } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 
-import { textRecognition } from '@kit.CoreVisionKit'
 import { image } from '@kit.ImageKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { fileIo } from '@kit.CoreFileKit';
@@ -10,14 +9,6 @@ import { preferences } from '@kit.ArkData';
 
 import { DocScanPage } from '../YYTB/DocScan/DocScanPage';
 import { WindowInfo } from '../utils/WindowInfo';
-
-// 跨设备协作相关
-import {
-  createCollaborationServiceMenuItems,
-  CollaborationServiceStateDialog,
-  CollaborationServiceFilter,
-  CollaborationDeviceFilterType
-} from '@kit.ServiceCollaborationKit';
 
 @Entry
 @Component
@@ -41,27 +32,6 @@ export struct SecondPage {
   // 手机端多设备开关（默认开启）
   @State isMultiDeviceEnabled: boolean = true;
   private prefs: preferences.Preferences | null = null;
-
-  aboutToAppear(): void {
-    // 初始化OCR
-    textRecognition.init().then((result) => {
-      hilog.info(0x0000, 'SecondPage', `OCR service initialization result:${result}`);
-    });
-    // 加载多设备开关设置
-    this.loadMultiDeviceSetting();
-  }
-
-  // 加载多设备开关设置
-  async loadMultiDeviceSetting() {
-    try {
-      this.prefs = await preferences.getPreferences(this.context, 'app_settings');
-      const savedValue = this.prefs.getSync('isMultiDeviceEnabled', true) as boolean;
-      this.isMultiDeviceEnabled = savedValue;
-      hilog.info(0x0000, 'SecondPage', `多设备开关设置已加载: ${savedValue}`);
-    } catch (err) {
-      hilog.error(0x0000, 'SecondPage', `加载多设备开关设置失败: ${JSON.stringify(err)}`);
-    }
-  }
 
   // 保存多设备开关设置
   async saveMultiDeviceSetting(enabled: boolean) {
@@ -119,9 +89,6 @@ export struct SecondPage {
       if (this.chooseImage) {
         this.chooseImage.release();
       }
-      if (this.imageSource) {
-        this.imageSource.release();
-      }
 
       let fileSource = await fileIo.open(uri, fileIo.OpenMode.READ_ONLY);
       this.imageSource = image.createImageSource(fileSource.fd);
@@ -142,8 +109,6 @@ export struct SecondPage {
           this.selectImage();
         }
       })
-      createCollaborationServiceMenuItems([CollaborationServiceFilter.ALL], 1,
-        [CollaborationDeviceFilterType.PHONE, CollaborationDeviceFilterType.TABLET, CollaborationDeviceFilterType.PC_2IN1])
     }
   }
 
@@ -159,34 +124,10 @@ export struct SecondPage {
           this.selectImage();
         }
       })
-      // 跨设备仅选择图片
-      createCollaborationServiceMenuItems([CollaborationServiceFilter.IMAGE_PICKER], 1,
-        [CollaborationDeviceFilterType.PHONE, CollaborationDeviceFilterType.TABLET, CollaborationDeviceFilterType.PC_2IN1])
     }
   }
 
   scroller: Scroller = new Scroller()
-
-  private async textRecognitionTest() {
-    if (!this.chooseImage) {
-      return;
-    }
-    let visionInfo: textRecognition.VisionInfo = {
-      pixelMap: this.chooseImage
-    };
-    let textConfiguration: textRecognition.TextRecognitionConfiguration = {
-      isDirectionDetectionSupported: false
-    };
-    let recognitionResult = await textRecognition.recognizeText(visionInfo, textConfiguration);
-    let recognitionString = recognitionResult.value;
-    this.dataValues = recognitionString;
-    hilog.info(0x0000, 'SecondPage', `Succeeded in recognizing text：${recognitionString}`);
-
-    if (this.chooseImage && this.imageSource) {
-      this.chooseImage.release();
-      this.imageSource.release();
-    }
-  }
 
   async aboutToDisappear(): Promise<void> {
     // 释放图像资源
@@ -194,13 +135,6 @@ export struct SecondPage {
       this.chooseImage.release();
       this.chooseImage = undefined;
     }
-    if (this.imageSource) {
-      this.imageSource.release();
-      this.imageSource = undefined;
-    }
-    // 释放OCR服务
-    await textRecognition.release();
-    hilog.info(0x0000, 'SecondPage', 'OCR service released successfully');
   }
 
   build() {
@@ -235,11 +169,6 @@ export struct SecondPage {
         .margin({ bottom: 10 })
 
         Row() {
-          // 跨设备协作状态对话框（用于接收其他设备的图片）
-          CollaborationServiceStateDialog({
-            onState: (stateCode: number, bufferType: string, buffer: ArrayBuffer): void => this.doInsertPicture(stateCode,
-              bufferType, buffer)
-          })
           // 所有设备：根据开关状态决定显示哪种按钮
           if (this.isMultiDeviceEnabled) {
             // 开启多设备：显示跨设备协作菜单
@@ -284,9 +213,6 @@ export struct SecondPage {
             .width('20%')
             .height(50)
             .backgroundColor($r('sys.color.ohos_id_color_activated'))
-            .onClick(async () => {
-              this.textRecognitionTest();
-            })
         }
         .padding({ top: 5 })
 
@@ -338,11 +264,6 @@ export struct SecondPage {
           .margin({ bottom: 10 })
 
           Row() {
-            // 跨设备协作状态对话框（用于接收其他设备的图片）
-            CollaborationServiceStateDialog({
-              onState: (stateCode: number, bufferType: string, buffer: ArrayBuffer): void => this.doInsertPicture(stateCode,
-                bufferType, buffer)
-            })
             // 所有设备：根据开关状态决定显示哪种按钮
             if (this.isMultiDeviceEnabled) {
               // 开启多设备：显示跨设备协作菜单
@@ -387,9 +308,7 @@ export struct SecondPage {
               .width('20%')
               .height(50)
               .backgroundColor($r('sys.color.ohos_id_color_activated'))
-              .onClick(async () => {
-                this.textRecognitionTest();
-              })
+
           }
           .padding({ top: 5 })
         }
@@ -412,9 +331,6 @@ export struct SecondPage {
         this.chooseImage = pixelMap;
         this.dataValues = '';
 
-        if (this.imageSource) {
-          this.imageSource.release();
-        }
         this.imageSource = imgSource;
       }).catch((error: BusinessError) => {
         hilog.error(0x0000, 'SecondPage', `Failed to process image from other device: ${JSON.stringify(error)}`);

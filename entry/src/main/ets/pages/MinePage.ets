@@ -1,10 +1,8 @@
 import { common, Want } from '@kit.AbilityKit';
-import { BusinessError, deviceInfo } from '@kit.BasicServicesKit';
-import { updateManager, commentManager } from '@kit.AppGalleryKit';
+import { deviceInfo } from '@kit.BasicServicesKit';
 import { promptAction, window } from '@kit.ArkUI';
 import { preferences } from '@kit.ArkData';
 import { bundleManager } from '@kit.AbilityKit';
-import { hilog } from '@kit.PerformanceAnalysisKit';
 
 @Observed
 class SettingMenu {
@@ -28,7 +26,6 @@ class SettingMenu {
 export struct MinePage {
   private iconStr: ResourceStr = $r("app.media.CIcon");
   @State menuGroup: SettingMenu[] = [
-    new SettingMenu('checkupdate', $r('sys.symbol.gearshape'), $r('app.string.check_update')),
     new SettingMenu('vipownsetting', $r('sys.symbol.star'), $r('app.string.mine2')),
     new SettingMenu('mycollection', $r('sys.symbol.heart'), $r('app.string.mine3'),
       'bilibili://space/338142387', 'https://space.bilibili.com/338142387'),
@@ -146,19 +143,6 @@ export struct MinePage {
           let context = getContext(this) as common.UIAbilityContext;
           context.startAbility(want)
           console.info(`MenuItem ability succeed`)
-        })
-      MenuItem({ startIcon: this.iconStr, content: $r('app.string.5star') })
-        .onClick(() => {
-          try {
-            const uiContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
-            commentManager.showCommentDialog(uiContext).then(() => {
-              hilog.info(0, 'TAG', "succeeded in showing commentDialog.");
-            }).catch((error: BusinessError<Object>) => {
-              hilog.error(0, 'TAG', `showCommentDialog failed, Code: ${error.code}, message: ${error.message}`);
-            });
-          } catch (error) {
-            hilog.error(0, 'TAG', `showCommentDialog failed, Code: ${error.code}, message: ${error.message}`);
-          }
         })
     }
   }
@@ -289,10 +273,6 @@ export struct MinePage {
                 .padding({ left: 20, right: 20 })
                 .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
                 .onClick(() => {
-                    if (item.id === 'checkupdate') {
-                      this.checkUpdate();
-                      return;
-                    }
                     if (item.id === 'vipownsetting') {
                       this.openUrl('https://appgallery.huawei.com/apptest/7bALvBIvIby');
                       return;
@@ -369,38 +349,6 @@ export struct MinePage {
     .padding({ bottom: this.isImmersiveTab ? 0 : px2vp(this.bottomRectHeight) })
     .backgroundColor($r('sys.color.ohos_id_color_background'))
     .expandSafeArea([SafeAreaType.SYSTEM])
-  }
-
-  // 检查更新
-  private checkUpdate() {
-    let context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
-    try {
-      updateManager.checkAppUpdate(context)
-        .then((checkResult: updateManager.CheckUpdateResult) => {
-          console.info("Succeeded in checking update, updateAvailable:" + checkResult.updateAvailable);
-          if (checkResult.updateAvailable) {
-            try {
-              updateManager.showUpdateDialog(context)
-                .then((resultCode: updateManager.ShowUpdateResultCode) => {
-                  console.info("Succeeded in showing UpdateDialog resultCode:" + resultCode);
-                })
-                .catch((error: BusinessError) => {
-                  console.error(`showUpdateDialog error: ${error.code}, ${error.message}`);
-                });
-            } catch (error) {
-              console.error(`showUpdateDialog error: ${error.code}, ${error.message}`);
-            }
-          } else {
-            promptAction.showToast({ message: $r('app.string.already_latest') });
-          }
-        })
-        .catch((error: BusinessError) => {
-          console.error(`checkAppUpdate error: ${error.code}, ${error.message}`);
-          promptAction.showToast({ message: $r('app.string.check_update_failed') });
-        });
-    } catch (error) {
-      console.error(`checkAppUpdate error: ${error.code}, ${error.message}`);
-    }
   }
 
   // 打开URL

@@ -1,4 +1,3 @@
-import { createDbInsertData } from '../formcommon/DbIndex';
 import { actionCreate, actionNewWant, actionWindowStageCreate } from '../formcommon/formsetting/FormAction';
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
@@ -24,7 +23,6 @@ export default class EntryAbility extends UIAbility {
     this.want = want;
     this.launchParam = launchParam;
     actionCreate(want);
-    createDbInsertData(this.context);
 
     // 接续场景：恢复迁移数据
     if (launchParam.launchReason === AbilityConstant.LaunchReason.CONTINUATION) {
@@ -80,7 +78,6 @@ export default class EntryAbility extends UIAbility {
   // 热启动场景通过onNewWant回调获取码值信息
   onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     actionNewWant(want, this);
-    createDbInsertData(this.context);
 
     // 接续场景：恢复迁移数据
     if (launchParam.launchReason === AbilityConstant.LaunchReason.CONTINUATION) {

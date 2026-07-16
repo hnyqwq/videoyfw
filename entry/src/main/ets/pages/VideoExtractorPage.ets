@@ -387,7 +387,6 @@ struct VideoExtractorPage {
           methodList: ['postMessage'],
           controller: this.webController
         })
-        .userAgent('Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36')
         .onPageBegin((event: OnPageBeginEvent) => {
           hilog.info(0x0000, 'VideoExtractor', `Page begin: ${event?.url}`);
         })
@@ -418,12 +417,6 @@ struct VideoExtractorPage {
             this.webViewVisible = false;
             promptAction.showToast({ message: $r('app.string.webpage_access_failed', responseCode) });
             router.back();
-          }
-        })
-        .onSslErrorReceive((event) => {
-          hilog.warn(0x0000, 'VideoExtractor', `SSL error, allowing to proceed`);
-          if (event && event.handler) {
-            (event.handler as (confirm: boolean) => void)(true);
           }
         })
     }
