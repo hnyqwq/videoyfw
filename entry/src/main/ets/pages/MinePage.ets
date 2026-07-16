@@ -1,0 +1,461 @@
+import { common, Want } from '@kit.AbilityKit';
+import { BusinessError, deviceInfo } from '@kit.BasicServicesKit';
+import { updateManager, commentManager } from '@kit.AppGalleryKit';
+import { promptAction, window } from '@kit.ArkUI';
+import { preferences } from '@kit.ArkData';
+import { bundleManager } from '@kit.AbilityKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+
+@Observed
+class SettingMenu {
+  public uri?: string;
+  public webUrl?: string; // 备用网页链接
+  public id: string;
+  public symbol: Resource;
+  public text: Resource | string;
+
+  constructor(id: string, symbol: Resource, text: Resource | string, uri?: string, webUrl?: string) {
+    this.id = id;
+    this.symbol = symbol;
+    this.text = text;
+    this.uri = uri;
+    this.webUrl = webUrl;
+  }
+}
+
+@Entry
+@Component
+export struct MinePage {
+  private iconStr: ResourceStr = $r("app.media.CIcon");
+  @State menuGroup: SettingMenu[] = [
+    new SettingMenu('checkupdate', $r('sys.symbol.gearshape'), $r('app.string.check_update')),
+    new SettingMenu('vipownsetting', $r('sys.symbol.star'), $r('app.string.mine2')),
+    new SettingMenu('mycollection', $r('sys.symbol.heart'), $r('app.string.mine3'),
+      'bilibili://space/338142387', 'https://space.bilibili.com/338142387'),
+    new SettingMenu('mylike', $r('sys.symbol.hand_thumbsup'), $r('app.string.mine4'),
+      'snssdk1128://user/profile/618379012226540?refer=web', 'https://www.douyin.com/user/MS4wLjABAAAAxFrsP4LK-iS49UNXIoHz_dwT1JU3FRHrvrKLs7HigGg'),
+    new SettingMenu('browsinghistory', $r('sys.symbol.clock'), $r('app.string.mine5'),
+      'https://blog.hnyqwq.cn', 'https://blog.hnyqwq.cn')
+  ];
+
+  // 沉浸Tab相关状态
+  @StorageLink('isImmersiveTab') isImmersiveTab: boolean = false;
+  @StorageLink('isImmersiveStatusBar') isImmersiveStatusBar: boolean = false;
+  @StorageProp('bottomRectHeight') bottomRectHeight: number = 0;
+  @StorageProp('topRectHeight') topRectHeight: number = 0;
+  @State isPcDevice: boolean = false; // 是否是PC/2in1设备
+  @State versionInfo: string = ''; // 版本信息
+  @State appName: string = ''; // 应用包名
+  private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
+  private preferencesStore: preferences.Preferences | null = null;
+
+  async aboutToAppear(): Promise<void> {
+    await this.checkDeviceCapability();
+    await this.loadVersionInfo();
+  }
+
+  // 检测设备能力
+  private async checkDeviceCapability(): Promise<void> {
+    // 检查是否是PC/2in1设备（deviceType返回'2in1'字符串）
+    this.isPcDevice = deviceInfo.deviceType === '2in1';
+    console.info(`设备能力检测: isPcDevice=${this.isPcDevice}, deviceType=${deviceInfo.deviceType}`);
+  }
+
+  // 加载版本信息
+  private async loadVersionInfo(): Promise<void> {
+    try {
+      const bundleInfo = await bundleManager.getBundleInfoForSelf(bundleManager.BundleFlag.GET_BUNDLE_INFO_DEFAULT);
+      const versionName = bundleInfo.versionName;
+      const versionCode = bundleInfo.versionCode;
+      this.versionInfo = `${versionName} (${versionCode})`;
+      this.appName = bundleInfo.name; // 获取应用包名
+    } catch (error) {
+      console.error('获取版本信息失败:', error);
+    }
+  }
+
+  // 切换沉浸Tab
+  private async toggleImmersiveTab(): Promise<void> {
+    const newValue = !this.isImmersiveTab;
+    this.isImmersiveTab = newValue;
+    await this.saveImmersiveSetting('isImmersiveTab', newValue);
+    
+    promptAction.showToast({ 
+      message: newValue ? $r('app.string.immersive_tab_enabled') : $r('app.string.immersive_tab_disabled')
+    });
+  }
+
+  // 切换顶部状态栏沉浸化（不保存设置，每次启动需手动开启）
+  private async toggleImmersiveStatusBar(): Promise<void> {
+    // PC/2in1设备不支持
+    if (this.isPcDevice) {
+      promptAction.showToast({ message: $r('app.string.status_bar_not_supported_pc') });
+      return;
+    }
+
+    const newValue = !this.isImmersiveStatusBar;
+    this.isImmersiveStatusBar = newValue;
+    // 不保存设置
+
+    // 立即应用状态栏设置
+    try {
+      const win = await window.getLastWindow(this.context);
+      if (newValue) {
+        // 沉浸模式：隐藏状态栏
+        await win.setWindowSystemBarEnable(['navigation']);
+        console.info('Immersive status bar enabled');
+      } else {
+        // 正常模式：显示状态栏
+        await win.setWindowSystemBarEnable(['status', 'navigation']);
+        console.info('Immersive status bar disabled');
+      }
+    } catch (error) {
+      console.error('Failed to apply status bar setting:', error);
+    }
+
+    promptAction.showToast({
+      message: newValue ? $r('app.string.immersive_status_bar_enabled') : $r('app.string.immersive_status_bar_disabled')
+    });
+  }
+
+  // 保存沉浸设置（通用方法）
+  private async saveImmersiveSetting(key: string, value: boolean): Promise<void> {
+    try {
+      if (!this.preferencesStore) {
+        this.preferencesStore = await preferences.getPreferences(this.context, 'immersive_settings');
+      }
+      await this.preferencesStore.put(key, value);
+      await this.preferencesStore.flush();
+      console.info(`${key}设置已保存:`, value);
+    } catch (error) {
+      console.error(`保存${key}设置失败:`, error);
+    }
+  }
+
+  // 设置长按菜单
+  @Builder
+  MyMenu() {
+    Menu() {
+      MenuItem({ startIcon: this.iconStr, content: $r('app.string.minelongpress') })
+        .onClick(() => {
+          let want: Want = {
+            "action": "ohos.want.action.viewData",
+            "entities": ["entity.system.browsable"],
+            uri: 'https://www.hnyqwq.cn/hvideo',
+          }
+          let context = getContext(this) as common.UIAbilityContext;
+          context.startAbility(want)
+          console.info(`MenuItem ability succeed`)
+        })
+      MenuItem({ startIcon: this.iconStr, content: $r('app.string.5star') })
+        .onClick(() => {
+          try {
+            const uiContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
+            commentManager.showCommentDialog(uiContext).then(() => {
+              hilog.info(0, 'TAG', "succeeded in showing commentDialog.");
+            }).catch((error: BusinessError<Object>) => {
+              hilog.error(0, 'TAG', `showCommentDialog failed, Code: ${error.code}, message: ${error.message}`);
+            });
+          } catch (error) {
+            hilog.error(0, 'TAG', `showCommentDialog failed, Code: ${error.code}, message: ${error.message}`);
+          }
+        })
+    }
+  }
+
+  // 预览组件
+  @Builder
+  MyPreview() {
+    Column() {
+      Image($r('app.media.CIcon'))
+        .width(200)
+        .height(200)
+    }
+  }
+
+  build() {
+    Scroll() {
+      Column() {
+        // 顶部用户信息区域
+        Column() {
+          Image($r('app.media.CIcon'))
+            .width(70)
+            .height(70)
+            .borderRadius(35)
+            .bindContextMenu(this.MyMenu, ResponseType.LongPress, {
+              preview: this.MyPreview,
+              previewAnimationOptions: {
+                hoverScale: [1.0, 0.95]
+              }
+            })
+
+          Text($r('app.string.appname'))
+            .fontWeight(FontWeight.Bold)
+            .fontSize(18)
+            .fontColor($r('app.color.font_color_182431'))
+            .margin({ top: 12 })
+
+          Text(this.versionInfo)
+            .fontSize(14)
+            .fontColor($r('sys.color.font_secondary'))
+            .margin({ top: 4 })
+        }
+        .width('100%')
+        .padding({ top: (this.isImmersiveStatusBar ? 0 : px2vp(this.topRectHeight)) + 10, bottom: 30 })
+
+        // 菜单列表区域
+        Column() {
+          // 沉浸样式开关
+          Row() {
+            Column() {
+              Text($r('app.string.immersive_tab_title'))
+                .fontSize(16)
+                .fontColor($r('app.color.font_color_182431'))
+              Text($r('app.string.immersive_tab_desc'))
+                .fontSize(12)
+                .fontColor($r('sys.color.font_secondary'))
+                .margin({ top: 2 })
+            }
+            .alignItems(HorizontalAlign.Start)
+            .layoutWeight(1)
+
+            Toggle({ type: ToggleType.Switch, isOn: this.isImmersiveTab })
+              .selectedColor($r('sys.color.ohos_id_color_activated'))
+              .onChange((isOn: boolean) => {
+                this.toggleImmersiveTab();
+              })
+          }
+          .width('100%')
+          .padding({ left: 20, right: 20, top: 12, bottom: 12 })
+          .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
+          .borderRadius(12)
+          .border({ width: 1, color: $r('app.color.list_border_color') })
+          .margin({ bottom: 8 })
+
+          // 状态栏沉浸开关
+          Row() {
+            Column() {
+              Text($r('app.string.immersive_status_bar_title'))
+                .fontSize(16)
+                .fontColor($r('app.color.font_color_182431'))
+              Text($r('app.string.immersive_status_bar_desc'))
+                .fontSize(12)
+                .fontColor($r('sys.color.font_secondary'))
+                .margin({ top: 2 })
+            }
+            .alignItems(HorizontalAlign.Start)
+            .layoutWeight(1)
+
+            if (this.isPcDevice) {
+              Text($r('app.string.status_bar_not_supported_pc'))
+                .fontSize(12)
+                .fontColor($r('sys.color.font_secondary'))
+            } else {
+              Toggle({ type: ToggleType.Switch, isOn: this.isImmersiveStatusBar })
+                .selectedColor($r('sys.color.ohos_id_color_activated'))
+                .onChange((isOn: boolean) => {
+                  this.toggleImmersiveStatusBar();
+                })
+            }
+          }
+          .width('100%')
+          .padding({ left: 20, right: 20, top: 12, bottom: 12 })
+          .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
+          .borderRadius(12)
+          .border({ width: 1, color: $r('app.color.list_border_color') })
+          .margin({ bottom: 12 })
+
+          List({ space: 0 }) {
+            ForEach(this.menuGroup, (item: SettingMenu, index: number) => {
+              ListItem() {
+                Row() {
+                  SymbolGlyph(item.symbol)
+                    .fontSize(22)
+                    .fontColor([$r('sys.color.icon_primary')])
+
+                  Text(item.text)
+                    .fontSize(16)
+                    .fontColor($r('app.color.font_color_182431'))
+                    .margin({ left: 16 })
+                    .layoutWeight(1)
+
+                  Image($r('sys.media.ohos_ic_public_arrow_right'))
+                    .width(16)
+                    .height(16)
+                    .fillColor($r('sys.color.icon_secondary'))
+                }
+                .width('100%')
+                .height(56)
+                .padding({ left: 20, right: 20 })
+                .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
+                .onClick(() => {
+                    if (item.id === 'checkupdate') {
+                      this.checkUpdate();
+                      return;
+                    }
+                    if (item.id === 'vipownsetting') {
+                      this.openUrl('https://appgallery.huawei.com/apptest/7bALvBIvIby');
+                      return;
+                    }
+                    if (item.uri) {
+                      this.openWithFallback(item.uri, item.webUrl);
+                    }
+                  })
+              }
+            }, (item: SettingMenu) => item.id.toString())
+          }
+          .width('100%')
+          .borderRadius(12)
+          .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
+          .clip(true)
+          .border({ width: 1, color: $r('app.color.list_border_color') })
+          .divider({
+            strokeWidth: 0.5,
+            color: $r('app.color.list_border_color'),
+            startMargin: 58,
+            endMargin: 20
+          })
+        }
+        .width('92%')
+        .margin({ top: 12 })
+
+        // 底部协议信息区域
+        Column() {
+          Text() {
+            /*Span($r('app.string.appyhxy'))
+              .onClick(() => this.openUrl('https://app.hnyqwq.cn/hvideo/yyyhxy.html'))
+              .fontColor($r('app.color.brand_color'))
+              .fontWeight(FontWeight.Regular)
+              .fontSize($r('sys.float.Body_S'))
+            Span($r('app.string.and'))
+              .fontColor($r('sys.color.font_primary'))
+              .fontWeight(FontWeight.Regular)
+              .fontSize($r('sys.float.Body_S'))*/
+            Span($r('app.string.appysxy'))
+              .onClick(() => this.openUrl('https://agreement-drcn.hispace.dbankcloud.cn/index.html?lang=zh&agreementId=1756976742938995392'))
+              .fontColor($r('app.color.brand_color'))
+              .fontWeight(FontWeight.Regular)
+              .fontSize($r('sys.float.Body_S'))
+          }
+          Row() {
+            Text(this.appName)
+              .fontWeight(FontWeight.Medium)
+              .fontColor($r('sys.color.font_secondary'))
+              .fontSize($r('sys.float.Body_S'))
+              .margin({ right: $r('sys.float.padding_level2') })
+            Text($r('app.string.copyright'))
+              .fontColor($r('sys.color.font_secondary'))
+              .fontWeight(FontWeight.Medium)
+              .fontSize($r('sys.float.Body_S'))
+          }
+          Text() {
+            Span('蜀ICP备2025142744号-4A')
+              .onClick(() => this.openUrl('https://beian.miit.gov.cn'))
+              .fontColor($r('app.color.brand_color'))
+              .fontSize($r('sys.float.Body_S'))
+          }
+        }
+        .width('100%')
+        .padding({ top: 30, bottom: 20 })
+        .alignItems(HorizontalAlign.Center)
+      }
+      .width('100%')
+      .padding({ bottom: px2vp(this.bottomRectHeight) + (this.isImmersiveTab ? 84 : 0) })
+    }
+    .width('100%')
+    .height('100%')
+    .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring)
+    .padding({ bottom: this.isImmersiveTab ? 0 : px2vp(this.bottomRectHeight) })
+    .backgroundColor($r('sys.color.ohos_id_color_background'))
+    .expandSafeArea([SafeAreaType.SYSTEM])
+  }
+
+  // 检查更新
+  private checkUpdate() {
+    let context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
+    try {
+      updateManager.checkAppUpdate(context)
+        .then((checkResult: updateManager.CheckUpdateResult) => {
+          console.info("Succeeded in checking update, updateAvailable:" + checkResult.updateAvailable);
+          if (checkResult.updateAvailable) {
+            try {
+              updateManager.showUpdateDialog(context)
+                .then((resultCode: updateManager.ShowUpdateResultCode) => {
+                  console.info("Succeeded in showing UpdateDialog resultCode:" + resultCode);
+                })
+                .catch((error: BusinessError) => {
+                  console.error(`showUpdateDialog error: ${error.code}, ${error.message}`);
+                });
+            } catch (error) {
+              console.error(`showUpdateDialog error: ${error.code}, ${error.message}`);
+            }
+          } else {
+            promptAction.showToast({ message: $r('app.string.already_latest') });
+          }
+        })
+        .catch((error: BusinessError) => {
+          console.error(`checkAppUpdate error: ${error.code}, ${error.message}`);
+          promptAction.showToast({ message: $r('app.string.check_update_failed') });
+        });
+    } catch (error) {
+      console.error(`checkAppUpdate error: ${error.code}, ${error.message}`);
+    }
+  }
+
+  // 打开URL
+  private openUrl(uri: string) {
+    try {
+      let want: Want = {
+        "action": "ohos.want.action.viewData",
+        "entities": ["entity.system.browsable"],
+        uri: uri,
+        "type": "text/plain"
+      }
+      let context = getContext(this) as common.UIAbilityContext;
+      context.startAbility(want)
+      console.info(`explicit start ability succeed`)
+    } catch (error) {
+      console.info(`explicit start ability failed`)
+    }
+  }
+
+  // Deep Linking：优先尝试拉起App，失败则打开网页
+  private openWithFallback(uri: string, webUrl?: string) {
+    const context = getContext(this) as common.UIAbilityContext;
+    
+    // HTTP/HTTPS链接直接打开
+    if (uri.startsWith('http://') || uri.startsWith('https://')) {
+      this.openUrl(uri);
+      return;
+    }
+    
+    // URL Scheme：检测是否可打开
+    try {
+      const canOpen: boolean = bundleManager.canOpenLink(uri);
+      console.info(`canOpenLink(${uri}): ${canOpen}`);
+      
+      if (canOpen) {
+        // 拉起目标App
+        context.openLink(uri, { appLinkingOnly: false })
+          .catch(() => {
+            // 失败时打开网页
+            if (webUrl) {
+              this.openUrl(webUrl);
+            }
+          });
+      } else {
+        // 不能打开时使用网页
+        if (webUrl) {
+          this.openUrl(webUrl);
+        }
+      }
+    } catch (error) {
+      console.error(`openWithFallback error: ${error}`);
+      // 异常时尝试网页
+      if (webUrl) {
+        this.openUrl(webUrl);
+      }
+    }
+  }
+}

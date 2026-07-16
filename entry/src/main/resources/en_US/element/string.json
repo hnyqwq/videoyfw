@@ -1,0 +1,746 @@
+{
+  "string":[
+    {
+      "name":"module_desc",
+      "value":"module description"
+    },
+    {
+      "name":"EntryAbility_desc",
+      "value":"description"
+    },
+    {
+      "name":"EntryAbility_label",
+      "value":"YunYing Tool House"
+    },
+    {
+      "name":"servicecollabutton",
+      "value":"Use remote device to insert images"
+    },
+    {
+      "name":"defaultForm_label",
+      "value":"Default Form Label"
+    },
+    {
+      "name":"defaultForm_desc",
+      "value":"Default Form Description"
+    },
+    {
+      "name":"JumpLabel",
+      "value":"JumpLabel"
+    },
+    {
+      "name":"ButtonA",
+      "value":"ButtonA"
+    },
+    {
+      "name":"ButtonB",
+      "value":"Start APP"
+    },
+    {
+      "name": "shareinfo",
+      "value": "Share Link"
+    },
+    {
+      "name": "pengyipeng_title",
+      "value": "Share Link"
+    },
+    {
+      "name": "pengyipeng_description",
+      "value": "YunYing Tool House · Tap to Transfer"
+    },
+    {
+      "name": "gekong_description",
+      "value": "YunYing Tool House · AI Air Transfer Sharing"
+    },
+    {
+      "name":"nopeng",
+      "value":"It seems there's no link to share at the moment. ⪩ ⪨"
+    },
+    {
+      "name":"nopengsystem",
+      "value":"Please ensure the content to share is a valid link ⪩ ⪨"
+    },
+    {
+      "name":"aboutpage",
+      "value":"About"
+    },
+    {
+      "name":"Home",
+      "value":"Video"
+    },
+    {
+      "name":"Second",
+      "value":"OCR"
+    },
+    {
+      "name":"Mine",
+      "value":"Mine"
+    },
+    {
+      "name":"controlon",
+      "value":"Playback controls are now visible. ^•ω<^"
+    },
+    {
+      "name":"controloff",
+      "value":"Playback controls are now hidden. ⌯>₃<⌯ಣ"
+    },
+    {
+      "name":"linkinput",
+      "value":"\uDB80\uDDDB Enter video link"
+    },
+    {
+      "name":"share",
+      "value":"\uDB80\uDC3D"
+    },
+    {
+      "name":"sharesuccess",
+      "value":"Sharing initiated successfully! Currently sharing:"
+    },
+    {
+      "name":"play",
+      "value":"\uDB80\uDCB4/\uDB80\uDCB1"
+    },
+    {
+      "name":"playing",
+      "value":"Video is playing... ᜊ•ᴗ•ᜊ"
+    },
+    {
+      "name":"noplay",
+      "value":"Please enter the video link ⪩ ⪨"
+    },
+    {
+      "name":"paused",
+      "value":"Paused~"
+    },
+    {
+      "name":"testinput",
+      "value":"Test Videos"
+    },
+    {
+      "name":"scancode",
+      "value":"\uDB80\uDC28\uDB80\uDD28"
+    },
+    {
+      "name":"downloaded",
+      "value":"\uDB80\uDCD0\uDB80\uDC13 Download request successful! After the download is complete, you can view the video in Albums > Videos , and it will be categorized by the video's creation date ."
+    },
+    {
+      "name":"pastedtishi",
+      "value":"\uDB80\uDC6D Paste from clipboard successfully!!!"
+    },
+    {
+      "name":"speedtitle",
+      "value":"Speed"
+    },
+    {
+      "name":"local_video",
+      "value":"Local Video"
+    },
+    {
+      "name":"pause",
+      "value":"Pause"
+    },
+    {
+      "name":"play_btn",
+      "value":"Play"
+    },
+    {
+      "name":"share_btn",
+      "value":"Share"
+    },
+    {
+      "name":"landscape_btn",
+      "value":"Toggle Landscape"
+    },
+    {
+      "name":"exit_fullscreen",
+      "value":"Exit Fullscreen"
+    },
+    {
+      "name":"fill_mode",
+      "value":"Fill"
+    },
+    {
+      "name":"scan_success",
+      "value":"Scan successful"
+    },
+    {
+      "name":"scan_cancelled",
+      "value":"Scan cancelled or failed"
+    },
+    {
+      "name":"scan_failed",
+      "value":"Failed to start scan"
+    },
+    {
+      "name":"1xspeed",
+      "value":"1x Speed（Normal Speed）"
+    },
+    {
+      "name":"1xspeedyes",
+      "value":"You have successfully switched to normal(1x) playback speed."
+    },
+    {
+      "name":"125xspeed",
+      "value":"1.25x Speed"
+    },
+    {
+      "name":"125xspeedyes",
+      "value":"You have successfully switched to 1.25x playback speed."
+    },
+    {
+      "name":"175xspeed",
+      "value":"1.75x Speed"
+    },
+    {
+      "name":"175xspeedyes",
+      "value":"You have successfully switched to 1.75x playback speed."
+    },
+    {
+      "name":"2xspeed",
+      "value":"2x Speed"
+    },
+    {
+      "name":"2xspeedyes",
+      "value":"You have successfully switched to 2x playback speed."
+    },
+    {
+      "name":"0125xspeed",
+      "value":"0.125x Speed"
+    },
+    {
+      "name":"0125xspeedyes",
+      "value":"You have successfully switched to 0.125x playback speed."
+    },
+    {
+      "name":"025xspeed",
+      "value":"0.25x Speed"
+    },
+    {
+      "name":"025xspeedyes",
+      "value":"You have successfully switched to 0.25x playback speed."
+    },
+    {
+      "name":"05xspeed",
+      "value":"0.5x Speed"
+    },
+    {
+      "name":"05xspeedyes",
+      "value":"You have successfully switched to 0.5x playback speed."
+    },
+    {
+      "name":"15xspeed",
+      "value":"1.5x Speed"
+    },
+    {
+      "name":"15xspeedyes",
+      "value":"You have successfully switched to 1.5x playback speed."
+    },
+    {
+      "name":"3xspeed",
+      "value":"3x Speed"
+    },
+    {
+      "name":"3xspeedyes",
+      "value":"You have successfully switched to 3x playback speed."
+    },
+    {
+      "name":"075xspeed",
+      "value":"0.75x Speed"
+    },
+    {
+      "name":"075xspeedyes",
+      "value":"You have successfully switched to 0.75x playback speed."
+    },
+    {
+      "name":"fullscreen",
+      "value":"\uDB82\uDCAD Landscape"
+    },
+    {
+      "name":"ImageFittitle",
+      "value":"Scaling Mode"
+    },
+    {
+      "name":"Fill",
+      "value":"Force Full Screen / Stretch to Fit"
+    },
+    {
+      "name":"Fillyes",
+      "value":"Current scaling mode: Force Full Screen / Stretch to Fit ⌯･ᴗ･⌯ಣ"
+    },
+    {
+      "name":"Auto",
+      "value":"Adaptive / Auto Fit"
+    },
+    {
+      "name":"Autoyes",
+      "value":"Current scaling mode: Adaptive / Auto Fit ⌯ᕑᗢᓫ⌯ಣ"
+    },
+    {
+      "name":"Contain",
+      "value":"Maintain Aspect Ratio"
+    },
+    {
+      "name":"Containyes",
+      "value":"Current scaling mode: Maintain Aspect Ratio ⌯ᕑᗢᓫ⌯ಣ"
+    },
+    {
+      "name":"Cover",
+      "value":"\uDB80\uDC09 Proportional Zoom"
+    },
+    {
+      "name":"Coveryes",
+      "value":"\uDB80\uDC09 Current scaling mode: Proportional Zoom / Fit to Fill (Aspect Ratio Zoom Fill) ⌯>ᴗo⌯ಣ"
+    },
+    {
+      "name":"nowplaying",
+      "value":"Current playing video link"
+    },
+    {
+      "name":"pick",
+      "value":"\uDB81\uDCE5 Pick"
+    },
+    {
+      "name":"takephotos",
+      "value":"Take a photo using this device. ៷>ᴗ<៷"
+    },
+    {
+      "name":"pickphotos",
+      "value":"Select an image from this device. ꒰⑅•ᴗ•⑅꒱"
+    },
+    {
+      "name":"and",
+      "value":"and"
+    },
+    {
+      "name":"copyright",
+      "value":"All rights reserved © 2025-2026."
+    },
+    {
+      "name":"mineunder",
+      "value":"Download AppTest"
+    },
+    {
+      "name":"infopagetitle",
+      "value":"APP Info > < "
+    },
+    {
+      "name":"mine1",
+      "value":"APP info"
+    },
+    {
+      "name":"check_update",
+      "value":"Check for updates"
+    },
+    {
+      "name":"check_update_failed",
+      "value":"Check for updates failed"
+    },
+    {
+      "name":"immersive_tab_title",
+      "value": "Immersive Tab Bar"
+    },
+    {
+      "name":"immersive_tab_desc",
+      "value":"Make Tab bar float above content"
+    },
+    {
+      "name":"immersive_tab_not_supported",
+      "value":"Current system version does not support immersive style (requires HarmonyOS NEXT or above)"
+    },
+    {
+      "name":"immersive_tab_enabled",
+      "value":"Immersive style enabled"
+    },
+    {
+      "name":"immersive_tab_disabled",
+      "value":"Immersive style disabled"
+    },
+    {
+      "name":"api_not_supported",
+      "value":"Only API >=23 devices supported"
+    },
+    {
+      "name":"immersive_status_bar_title",
+      "value":"Immersive Status Bar"
+    },
+    {
+      "name":"immersive_status_bar_desc",
+      "value":"Extend content to status bar area, enable manually each time"
+    },
+    {
+      "name":"immersive_status_bar_enabled",
+      "value":"Immersive status bar enabled"
+    },
+    {
+      "name":"immersive_status_bar_disabled",
+      "value":"Immersive status bar disabled"
+    },
+    {
+      "name":"status_bar_not_supported_pc",
+      "value":"Not supported on PC/2in1 devices"
+    },
+    {
+      "name":"already_latest",
+      "value":"Already latest version"
+    },
+    {
+      "name":"mine2",
+      "value": "Join invite test"
+    },
+    {
+      "name":"mine3",
+      "value":"Subscribe bilibili"
+    },
+    {
+      "name":"mine4",
+      "value":"Subscribe Douyin"
+    },
+    {
+      "name":"mine5",
+      "value":"Official Blog"
+    },
+    {
+      "name":"info1",
+      "value":"Model name"
+    },
+    {
+      "name":"info2",
+      "value":"Model number"
+    },
+    {
+      "name":"info3",
+      "value":"HarmonyOS version"
+    },
+    {
+      "name":"info4",
+      "value":"Serial number"
+    },
+    {
+      "name":"info5",
+      "value":"HarmonyOS"
+    },
+    {
+      "name":"choose",
+      "value":"Choose video"
+    },
+    {
+      "name":"appname",
+      "value":"YunYing Tool House"
+    },
+    {
+      "name":"appyhxy",
+      "value":"YunYing Tool House rules "
+    },
+    {
+      "name":"appysxy",
+      "value":" Service agreements"
+    },
+    {
+      "name": "minelongpress",
+      "value": "Go to YunYing Tool House"
+    },
+    {
+      "name": "5star",
+      "value": "Rate us 5 stars ๑>ᴗO๑"
+    },
+    {
+      "name":"nowplayingon",
+      "value":"Knock to share requires a phone: supports knocking between phones, MatePad Edge, MatePad Pro Max, and PC/2in1. Tablet-to-tablet, PC-to-tablet, and PC-to-PC are not supported."
+    },
+    {
+      "name":"can_knock_share",
+      "value":"Tap to Share"
+    },
+    {
+      "name":"phone_can_knock_share",
+      "value":"Phone Tap to Share"
+    },
+    {
+      "name":"pc_can_knock_share",
+      "value":"PC Tap to Share"
+    },
+    {
+      "name":"phone_to_pc_can_knock_share",
+      "value":"Phone→PC Tap to Share"
+    },
+    {
+      "name":"pc_to_phone_can_knock_share",
+      "value":"PC→Phone Tap to Share"
+    },
+    {
+      "name":"knock_guide_phone_hos5",
+      "value":"Requires HarmonyOS 5 or later on the other phone."
+    },
+    {
+      "name":"knock_guide_pc_hos6",
+      "value":"Requires HarmonyOS 6 or later on the other PC."
+    },
+    {
+      "name":"knock_guide_phone_hos6",
+      "value":"Requires HarmonyOS 6 or later on the other phone."
+    },
+    {
+      "name": "large_device_hint",
+      "value": "Most tablets only supports Air Transfer,you can use other devices to experience the Tap to Share feature."
+    },
+    {
+      "name": "pip_window_loading_progress",
+      "value": "Loading..."
+    },
+    {
+      "name": "pip_window_full_width",
+      "value": "100%"
+    },
+    {
+      "name": "pip_window_control_panel_height",
+      "value": "40%"
+    },
+    {
+      "name": "pip_window_not_activated",
+      "value": "The current device does not have Picture-in-Picture enabled. Please enable it in the settings"
+    },
+    {
+      "name": "pip_window_open",
+      "value": "The current device has enabled picture-in-picture"
+    },
+    {
+      "name": "pip_window_video_playing",
+      "value": "The current video is playing in a small window"
+    },
+    {
+      "name": "example",
+      "value": "Usage: After inputting, select the video zoom mode as ★Scale to Fill and watch in full screen/leave it on. If playback is stuttering, it's due to downloading and playback. Please ensure good network conditions. The copyright of images and videos belongs to the image/video producers and is only used for testing the app. If there is any infringement, it will be immediately removed."
+    },
+    {
+      "name": "no_video_placeholder",
+      "value": "Please select a local video or enter a network link"
+    },
+    {
+      "name": "link_format_hint",
+      "value": "Link must end with .mp4/.mov/.mkv etc. video format. Supports mp4, mkv, TS formats."
+    },
+    {
+      "name": "sample_video",
+      "value": "Sample Video"
+    },
+    {
+      "name": "sample_video_loaded",
+      "value": "Sample video loaded"
+    },
+    {
+      "name": "scan_input",
+      "value": "Scan QR Code"
+    },
+    {
+      "name": "sample_webpage",
+      "value": "Sample Webpage"
+    },
+    {
+      "name": "sample_webpage_loaded",
+      "value": "Sample webpage link filled"
+    },
+    {
+      "name": "web_video_extractor_title",
+      "value": "Web Video Extractor"
+    },
+    {
+      "name": "web_video_extractor_desc",
+      "value": "Enter a webpage link to extract plain-text video URLs in the source (e.g. mp4, m3u8); dynamically loaded, encrypted (DRM/blob), login-required, or SPA-rendered content cannot be extracted"
+    },
+    {
+      "name": "extractor_input_placeholder",
+      "value": "Enter webpage link"
+    },
+    {
+      "name": "extract_btn_text",
+      "value": "Extract"
+    },
+    {
+      "name": "webpage_link_placeholder",
+      "value": "Enter webpage link"
+    },
+    {
+      "name": "extracting",
+      "value": "Extracting..."
+    },
+    {
+      "name": "extract",
+      "value": "Extract"
+    },
+    {
+      "name": "found_videos_sorting",
+      "value": "Found %d video links (will sort by size)"
+    },
+    {
+      "name": "play_btn_short",
+      "value": "Play"
+    },
+    {
+      "name": "copy_btn",
+      "value": "Copy"
+    },
+    {
+      "name": "loading_progress",
+      "value": "Loading: %d%"
+    },
+    {
+      "name": "extract_video_btn",
+      "value": "Extract Video"
+    },
+    {
+      "name": "close_btn",
+      "value": "Close"
+    },
+    {
+      "name": "wait_for_page_load",
+      "value": "Please wait for the page to load, then click \"Extract Video\""
+    },
+    {
+      "name": "page_load_complete",
+      "value": "Page loaded, click \"Extract Video\""
+    },
+    {
+      "name": "webpage_load_timeout",
+      "value": "Webpage load timeout"
+    },
+    {
+      "name": "no_video_found",
+      "value": "No video links found"
+    },
+    {
+      "name": "found_videos_fetching_size",
+      "value": "Found %d video links, fetching sizes..."
+    },
+    {
+      "name": "videos_sorted",
+      "value": "Sorted by size, %d videos total"
+    },
+    {
+      "name": "extract_failed",
+      "value": "Extract failed: %s"
+    },
+    {
+      "name": "enter_webpage_link",
+      "value": "Please enter a webpage link"
+    },
+    {
+      "name": "enter_valid_webpage_link",
+      "value": "Please enter a valid webpage link"
+    },
+    {
+      "name": "video_link_set_loading",
+      "value": "Video link set, loading..."
+    },
+    {
+      "name": "link_copied",
+      "value": "Link copied"
+    },
+    {
+      "name": "fetching",
+      "value": "Fetching"
+    },
+    {
+      "name": "orientation_failed",
+      "value": "Orientation setting failed"
+    },
+    {
+      "name": "unknown",
+      "value": "Unknown"
+    },
+    {
+      "name": "share_failed",
+      "value": "Share failed"
+    },
+    {
+      "name": "play_video",
+      "value": "Play video"
+    },
+    {
+      "name": "copy_link",
+      "value": "Cpoy link"
+    },
+    {
+      "name": "found_videos",
+      "value": "Found %d video links"
+    },
+    {
+      "name": "video_received_playing",
+      "value": "Cross-device video received, playing"
+    },
+    {
+      "name": "video_received_failed",
+      "value": "Failed to receive cross-device video"
+    },
+    {
+      "name": "multi_device",
+      "value": "Multi-device"
+    },
+    {
+      "name": "webpage_load_error",
+      "value": "Load error: %s"
+    },
+    {
+      "name": "website_login_required",
+      "value": "This website requires login, please log in via WebView"
+    },
+    {
+      "name": "webpage_access_failed",
+      "value": "Webpage access failed (%d)"
+    },
+
+    {
+      "name": "ve_cancel",
+      "value": "Cancel"
+    },
+    {
+      "name": "ve_video_link_returning",
+      "value": "Video link set, returning..."
+    },
+    {
+      "name": "ve_load_timeout_check_network",
+      "value": "Webpage load timeout, please check your network"
+    },
+
+    {
+      "name": "ve_page_ready_to_extract",
+      "value": "Page loaded, click \"Extract Video\" to get video links"
+    },
+    {
+      "name": "ve_type_video_tag",
+      "value": "Video tag"
+    },
+    {
+      "name": "ve_type_source_tag",
+      "value": "Source tag"
+    },
+    {
+      "name": "ve_type_link_tag",
+      "value": "Link tag"
+    },
+    {
+      "name": "ve_type_iframe",
+      "value": "Iframe embed"
+    },
+    {
+      "name": "ve_type_poster",
+      "value": "Poster attr"
+    },
+    {
+      "name": "ve_type_data_attr",
+      "value": "Data attr"
+    },
+    {
+      "name": "ve_type_video_host",
+      "value": "Video host"
+    },
+    {
+      "name": "ve_type_json_field",
+      "value": "JSON field"
+    },
+    {
+      "name": "ve_type_raw_url",
+      "value": "Raw URL"
+    }
+  ]
+}
