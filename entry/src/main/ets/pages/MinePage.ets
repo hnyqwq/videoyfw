@@ -189,33 +189,6 @@ export struct MinePage {
 
         // 菜单列表区域
         Column() {
-          // 沉浸样式开关
-          Row() {
-            Column() {
-              Text($r('app.string.immersive_tab_title'))
-                .fontSize(16)
-                .fontColor($r('app.color.font_color_182431'))
-              Text($r('app.string.immersive_tab_desc'))
-                .fontSize(12)
-                .fontColor($r('sys.color.font_secondary'))
-                .margin({ top: 2 })
-            }
-            .alignItems(HorizontalAlign.Start)
-            .layoutWeight(1)
-
-            Toggle({ type: ToggleType.Switch, isOn: this.isImmersiveTab })
-              .selectedColor($r('sys.color.ohos_id_color_activated'))
-              .onChange((isOn: boolean) => {
-                this.toggleImmersiveTab();
-              })
-          }
-          .width('100%')
-          .padding({ left: 20, right: 20, top: 12, bottom: 12 })
-          .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
-          .borderRadius(12)
-          .border({ width: 1, color: $r('app.color.list_border_color') })
-          .margin({ bottom: 8 })
-
           // 状态栏沉浸开关
           Row() {
             Column() {
@@ -302,15 +275,6 @@ export struct MinePage {
         // 底部协议信息区域
         Column() {
           Text() {
-            /*Span($r('app.string.appyhxy'))
-              .onClick(() => this.openUrl('https://app.hnyqwq.cn/hvideo/yyyhxy.html'))
-              .fontColor($r('app.color.brand_color'))
-              .fontWeight(FontWeight.Regular)
-              .fontSize($r('sys.float.Body_S'))
-            Span($r('app.string.and'))
-              .fontColor($r('sys.color.font_primary'))
-              .fontWeight(FontWeight.Regular)
-              .fontSize($r('sys.float.Body_S'))*/
             Span($r('app.string.appysxy'))
               .onClick(() => this.openUrl('https://agreement-drcn.hispace.dbankcloud.cn/index.html?lang=zh&agreementId=1756976742938995392'))
               .fontColor($r('app.color.brand_color'))
@@ -323,13 +287,13 @@ export struct MinePage {
               .fontColor($r('sys.color.font_secondary'))
               .fontSize($r('sys.float.Body_S'))
               .margin({ right: $r('sys.float.padding_level2') })
-            Text($r('app.string.copyright'))
+            /*Text($r('app.string.copyright'))
               .fontColor($r('sys.color.font_secondary'))
               .fontWeight(FontWeight.Medium)
-              .fontSize($r('sys.float.Body_S'))
+              .fontSize($r('sys.float.Body_S'))*/
           }
           Text() {
-            Span('蜀ICP备2025142744号-4A')
+            Span('蜀ICP备2025142744号-5K')
               .onClick(() => this.openUrl('https://beian.miit.gov.cn'))
               .fontColor($r('app.color.brand_color'))
               .fontSize($r('sys.float.Body_S'))
