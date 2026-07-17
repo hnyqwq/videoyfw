@@ -5,7 +5,6 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { image } from '@kit.ImageKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { fileIo } from '@kit.CoreFileKit';
-import { preferences } from '@kit.ArkData';
 
 import { DocScanPage } from '../YYTB/DocScan/DocScanPage';
 import { WindowInfo } from '../utils/WindowInfo';
@@ -28,30 +27,6 @@ export struct SecondPage {
   @State chooseImage: PixelMap | undefined = undefined;
   @State dataValues: string = '';
   @Provide('pathStack') pathStack: NavPathStack = new NavPathStack()
-
-  // 手机端多设备开关（默认开启）
-  @State isMultiDeviceEnabled: boolean = true;
-  private prefs: preferences.Preferences | null = null;
-
-  // 保存多设备开关设置
-  async saveMultiDeviceSetting(enabled: boolean) {
-    try {
-      if (!this.prefs) {
-        this.prefs = await preferences.getPreferences(this.context, 'app_settings');
-      }
-      await this.prefs.put('isMultiDeviceEnabled', enabled);
-      await this.prefs.flush();
-      hilog.info(0x0000, 'SecondPage', `多设备开关设置已保存: ${enabled}`);
-    } catch (err) {
-      hilog.error(0x0000, 'SecondPage', `保存多设备开关设置失败: ${JSON.stringify(err)}`);
-    }
-  }
-
-  // 切换多设备开关
-  onMultiDeviceToggle(enabled: boolean) {
-    this.isMultiDeviceEnabled = enabled;
-    this.saveMultiDeviceSetting(enabled);
-  }
 
   @Builder
   PageMap(name: string) {
@@ -146,56 +121,8 @@ export struct SecondPage {
       }
 
       if (this.chooseImage) {
-        // 有图片时：功能区域在顶部，下方显示滚动内容
-        // 多设备开关（小卡片样式）
         Row() {
-          Text($r('app.string.multi_device'))
-            .fontSize(14)
-            .fontColor($r('sys.color.font_primary'))
-          Blank()
-          Toggle({ type: ToggleType.Switch, isOn: this.isMultiDeviceEnabled })
-            .selectedColor($r('sys.color.ohos_id_color_activated'))
-            .onChange((isOn: boolean) => {
-              this.onMultiDeviceToggle(isOn);
-            })
-        }
-        .width('40%')
-        .height(50)
-        .padding({ left: 16, right: 16 })
-        .borderRadius(16)
-        .border({ width: 1, color: '#19000000' })
-        .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
-        .shadow({ radius: 6, color: '#26000000', offsetX: 0, offsetY: 2 })
-        .margin({ bottom: 10 })
-
-        Row() {
-          // 所有设备：根据开关状态决定显示哪种按钮
-          if (this.isMultiDeviceEnabled) {
-            // 开启多设备：显示跨设备协作菜单
-            if (this.mainWindowInfo.widthBp === 'lg' || this.mainWindowInfo.widthBp === 'xl') {
-              // 平板/PC设备
-              Button($r('app.string.pick'))
-                .type(ButtonType.Capsule)
-                .fontColor(Color.White)
-                .width('20%')
-                .margin({ right: 10 })
-                .height(50)
-                .backgroundColor($r('sys.color.ohos_id_color_activated'))
-                .bindMenu(this.MyTestMenu)
-            } else {
-              // 手机设备
-              Button($r('app.string.pick'))
-                .type(ButtonType.Capsule)
-                .fontColor(Color.White)
-                .width('20%')
-                .margin({ right: 10 })
-                .height(50)
-                .backgroundColor($r('sys.color.ohos_id_color_activated'))
-                .bindMenu(this.PhonePickMenu)
-            }
-          } else {
-            // 关闭多设备：显示普通本地选择按钮
-            Button($r('app.string.pick'))
+          Button($r('app.string.pick'))
               .type(ButtonType.Capsule)
               .fontColor(Color.White)
               .width('20%')
@@ -205,14 +132,17 @@ export struct SecondPage {
               .onClick(() => {
                 this.selectImage();
               })
-          }
-          Button('OCR')
+          Button('×')
             .type(ButtonType.Capsule)
             .fontColor(Color.White)
             .alignSelf(ItemAlign.Center)
             .width('20%')
             .height(50)
             .backgroundColor($r('sys.color.ohos_id_color_activated'))
+            .onClick(() => {
+              this.chooseImage = undefined;
+              this.dataValues = '';
+            })
         }
         .padding({ top: 5 })
 
@@ -242,55 +172,8 @@ export struct SecondPage {
       } else {
         // 无图片时：功能区域上下居中
         Column() {
-          // 多设备开关（小卡片样式）
           Row() {
-            Text($r('app.string.multi_device'))
-              .fontSize(14)
-              .fontColor($r('sys.color.font_primary'))
-            Blank()
-            Toggle({ type: ToggleType.Switch, isOn: this.isMultiDeviceEnabled })
-              .selectedColor($r('sys.color.ohos_id_color_activated'))
-              .onChange((isOn: boolean) => {
-                this.onMultiDeviceToggle(isOn);
-              })
-          }
-          .width('40%')
-          .height(50)
-          .padding({ left: 16, right: 16 })
-          .borderRadius(16)
-          .border({ width: 1, color: '#19000000' })
-          .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
-          .shadow({ radius: 6, color: '#26000000', offsetX: 0, offsetY: 2 })
-          .margin({ bottom: 10 })
-
-          Row() {
-            // 所有设备：根据开关状态决定显示哪种按钮
-            if (this.isMultiDeviceEnabled) {
-              // 开启多设备：显示跨设备协作菜单
-              if (this.mainWindowInfo.widthBp === 'lg' || this.mainWindowInfo.widthBp === 'xl') {
-                // 平板/PC设备
-                Button($r('app.string.pick'))
-                  .type(ButtonType.Capsule)
-                  .fontColor(Color.White)
-                  .width('20%')
-                  .margin({ right: 10 })
-                  .height(50)
-                  .backgroundColor($r('sys.color.ohos_id_color_activated'))
-                  .bindMenu(this.MyTestMenu)
-              } else {
-                // 手机设备
-                Button($r('app.string.pick'))
-                  .type(ButtonType.Capsule)
-                  .fontColor(Color.White)
-                  .width('20%')
-                  .margin({ right: 10 })
-                  .height(50)
-                  .backgroundColor($r('sys.color.ohos_id_color_activated'))
-                  .bindMenu(this.PhonePickMenu)
-              }
-            } else {
-              // 关闭多设备：显示普通本地选择按钮
-              Button($r('app.string.pick'))
+            Button($r('app.string.pick'))
                 .type(ButtonType.Capsule)
                 .fontColor(Color.White)
                 .width('20%')
@@ -300,14 +183,6 @@ export struct SecondPage {
                 .onClick(() => {
                   this.selectImage();
                 })
-            }
-            Button('OCR')
-              .type(ButtonType.Capsule)
-              .fontColor(Color.White)
-              .alignSelf(ItemAlign.Center)
-              .width('20%')
-              .height(50)
-              .backgroundColor($r('sys.color.ohos_id_color_activated'))
 
           }
           .padding({ top: 5 })

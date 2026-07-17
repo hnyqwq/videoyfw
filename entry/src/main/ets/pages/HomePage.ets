@@ -882,67 +882,25 @@ export struct HomePage {
 
       // 快捷操作区 - 网格布局
       Grid() {
-        // 本地选择 + 多设备
+        // 本地选择
         GridItem() {
-          Flex({
-            direction: (this.mainWindowInfo.widthBp === 'lg' || this.mainWindowInfo.widthBp === 'xl') ?
-              FlexDirection.Row : FlexDirection.Column,
-            alignItems: ItemAlign.Center,
-            justifyContent: FlexAlign.Center
-          }) {
-            // 本地选择
-            Flex({
-              direction: (this.mainWindowInfo.widthBp === 'lg' || this.mainWindowInfo.widthBp === 'xl') ?
-                FlexDirection.Column : FlexDirection.Row,
-              alignItems: ItemAlign.Center,
-              justifyContent: FlexAlign.Center
-            }) {
+          Column() {
               SymbolGlyph($r('sys.symbol.folder'))
-                .fontSize(22)
+                .fontSize(28)
                 .fontColor([$r('sys.color.ohos_id_color_activated')])
               Text($r('app.string.local_video'))
                 .fontSize(12)
                 .fontColor($r('sys.color.font_primary'))
-                .margin((this.mainWindowInfo.widthBp === 'lg' || this.mainWindowInfo.widthBp === 'xl') ?
-                  { top: 4 } : { left: 4 })
-            }
-            .layoutWeight(1)
+                .margin({ top: 6 })
+              }
+            .width('100%')
+            .height('100%')
+            .justifyContent(FlexAlign.Center)
+            .borderRadius(12)
+            .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
+            .border({ width: 1, color: $r('sys.color.ohos_id_color_list_separator') })
             .onClick(() => this.callFilePickerSelectImage())
-
-            // 分割线：平板竖线，手机横线
-            Divider()
-              .vertical(this.mainWindowInfo.widthBp === 'lg' || this.mainWindowInfo.widthBp === 'xl')
-              .height((this.mainWindowInfo.widthBp === 'lg' || this.mainWindowInfo.widthBp === 'xl') ? '60%' : undefined)
-              .width((this.mainWindowInfo.widthBp === 'lg' || this.mainWindowInfo.widthBp === 'xl') ? undefined : '70%')
-              .color($r('sys.color.ohos_id_color_list_separator'))
-              .margin((this.mainWindowInfo.widthBp === 'lg' || this.mainWindowInfo.widthBp === 'xl') ?
-                undefined : { top: 4, bottom: 4 })
-
-            // 多设备协作
-            Flex({
-              direction: (this.mainWindowInfo.widthBp === 'lg' || this.mainWindowInfo.widthBp === 'xl') ?
-                FlexDirection.Column : FlexDirection.Row,
-              alignItems: ItemAlign.Center,
-              justifyContent: FlexAlign.Center
-            }) {
-              SymbolGlyph($r('sys.symbol.folder_badge_eye'))
-                .fontSize(22)
-                .fontColor([$r('sys.color.ohos_id_color_activated')])
-              Text($r('app.string.multi_device'))
-                .fontSize(12)
-                .fontColor($r('sys.color.font_primary'))
-                .margin((this.mainWindowInfo.widthBp === 'lg' || this.mainWindowInfo.widthBp === 'xl') ?
-                  { top: 4 } : { left: 4 })
-            }
-            .layoutWeight(1)
-            .bindMenu(this.MultiDeviceMenu)
           }
-          .width('100%')
-          .height('100%')
-          .borderRadius(12)
-          .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
-          .border({ width: 1, color: $r('sys.color.ohos_id_color_list_separator') })
-        }
 
         // 播放/暂停
         GridItem() {
