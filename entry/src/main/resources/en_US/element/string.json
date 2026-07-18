@@ -741,6 +741,10 @@
     {
       "name": "ve_type_raw_url",
       "value": "Raw URL"
+    },
+    {
+      "name": "yuanfuwu",
+      "value": "Full-screen landscape mode, remains in landscape after exiting full screen"
     }
   ]
 }

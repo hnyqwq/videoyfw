@@ -610,7 +610,7 @@ export struct HomePage {
             .height(44)
             .borderRadius(22)
             .backgroundColor($r('sys.color.ohos_id_color_background'))
-  .expandSafeArea([SafeAreaType.SYSTEM])
+            .expandSafeArea([SafeAreaType.SYSTEM])
             .border({ width: 1, color: $r('app.color.list_border_color') })
             .onChange((networkVideoSrc: string) => {
               this.networkVideoSrc = networkVideoSrc;
@@ -929,16 +929,17 @@ export struct HomePage {
           })
         }
 
-        // 分享
+        // APP分享 元服务改为一键设置
         GridItem() {
           Column() {
-            SymbolGlyph($r('sys.symbol.share'))
+            SymbolGlyph($r('sys.symbol.more'))
               .fontSize(28)
               .fontColor([$r('sys.color.ohos_id_color_activated')])
-            Text($r('app.string.share_btn'))
+            Text($r('app.string.yuanfuwu'))
               .fontSize(12)
               .fontColor($r('sys.color.font_primary'))
               .margin({ top: 6 })
+              .textOverflow({ overflow: TextOverflow.MARQUEE })
           }
           .width('100%')
           .height('100%')
@@ -946,7 +947,31 @@ export struct HomePage {
           .borderRadius(12)
           .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
           .border({ width: 1, color: $r('sys.color.ohos_id_color_list_separator') })
-          .onClick(() => this.share())
+          .onClick(() => {
+            window.getLastWindow(this.context).then((win: window.Window) => {
+              const cur = win.getPreferredOrientation();
+              if (cur === window.Orientation.PORTRAIT || cur === window.Orientation.PORTRAIT_INVERTED) {
+                this.orientationBeforeFullscreen = cur;
+                win.setPreferredOrientation(window.Orientation.AUTO_ROTATION_LANDSCAPE);
+                AppStorage.setOrCreate('isLandscape', true);
+              } else {
+                // 当前横屏，切回竖屏
+                win.setPreferredOrientation(this.orientationBeforeFullscreen);
+                AppStorage.setOrCreate('isLandscape', false);
+              }
+            }).catch(() => {});
+
+            //横屏 全屏 填充
+            this.controller.requestFullscreen(true);
+            window.getLastWindow(this.context).then((win) => {
+              win.setPreferredOrientation(window.Orientation.LANDSCAPE);
+              win.setWindowLayoutFullScreen(true);
+              win.setWindowSystemBarEnable([]);
+            });
+
+            this.currentFitMode = ImageFit.Cover;
+            promptAction.showToast({ message: $r('app.string.Coveryes') })
+          })
         }
 
         // 横屏
