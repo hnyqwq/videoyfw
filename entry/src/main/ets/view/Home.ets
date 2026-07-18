@@ -29,6 +29,15 @@ export struct Home {
   };
 
   aboutToAppear(): void {
+    // 用真实 context 重建 tabMap，获取正确的本地化 Tab 名称
+    try {
+      const ctx = getContext(this) as abilityCommon.UIAbilityContext;
+      this.tabViewModel.initWithContext(ctx);
+      this.tabData = this.tabViewModel.getTabMap();
+    } catch (e) {
+      console.error('Home: Failed to init tabViewModel with context:', e);
+    }
+
     // 订阅快捷方式导航事件
     try {
       const context = getContext(this) as abilityCommon.UIAbilityContext;
@@ -108,9 +117,9 @@ export struct Home {
   getTabSymbol(index: number): Resource {
     switch (index) {
       case 0:
-        return $r('sys.symbol.share');
+        return $r('sys.symbol.media_center');
       case 1:
-        return $r('sys.symbol.square_grid_2x2');
+        return $r('sys.symbol.doc_text');
       case 2:
         return $r('sys.symbol.person');
       default:
