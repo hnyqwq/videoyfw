@@ -46,8 +46,8 @@ export default class EntryAbility extends UIAbility {
       AppStorage.setOrCreate<string>('sharedVideoUrl', receivedLink.toString());
     }
 
-    // 加载沉浸Tab设置（同步加载）
-    this.loadImmersiveSettingSync();
+    // 状态栏沉浸设置不记忆，每次启动默认关闭
+    AppStorage.setOrCreate('isImmersiveStatusBar', false);
 
     // 原有扫码逻辑保留
     let uri = want?.uri;
@@ -157,8 +157,20 @@ export default class EntryAbility extends UIAbility {
         });
       }
 
-      // 配置窗口整体底色（导航条区域背景色）
-      windowClass.setWindowBackgroundColor('#F1F3F5');
+      // 配置窗口整体底色和系统栏颜色，适配深色模式
+      const isDarkMode = this.context.config?.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
+      const bgColor = isDarkMode ? '#000000' : '#F1F3F5';
+      windowClass.setWindowBackgroundColor(bgColor);
+      windowClass.setWindowSystemBarProperties({
+        navigationBarColor: bgColor,
+        statusBarColor: bgColor,
+        isNavigationBarLightIcon: isDarkMode,
+        isStatusBarLightIcon: isDarkMode
+      }).then(() => {
+        console.info('Succeeded in setting system bar properties.');
+      }).catch((err: BusinessError) => {
+        console.error(`Failed to set system bar properties. Code is ${err.code}, message is ${err.message}`);
+      });
 
       // 初始化断点监听（在页面加载完成后）
       windowUtil.updateWindowInfo();
@@ -174,23 +186,10 @@ export default class EntryAbility extends UIAbility {
     });
   }
 
-  // 同步加载沉浸Tab设置
+  // 同步加载沉浸设置
   private loadImmersiveSettingSync(): void {
-    try {
-      // 同步获取preferences
-      const prefs = preferences.getPreferencesSync(this.context, { name: 'immersive_settings' });
-      const savedValue = prefs.getSync('isImmersiveTab', false) as boolean;
-      AppStorage.setOrCreate('isImmersiveTab', savedValue);
-      hilog.info(DOMAIN_NUMBER, TAG, `沉浸Tab设置已加载: ${savedValue}`);
-
-      // 状态栏沉浸设置不记忆，每次启动默认关闭
-      AppStorage.setOrCreate('isImmersiveStatusBar', false);
-      hilog.info(DOMAIN_NUMBER, TAG, '状态栏沉浸设置不记忆，默认关闭');
-    } catch (error) {
-      hilog.error(DOMAIN_NUMBER, TAG, `加载沉浸Tab设置失败: ${JSON.stringify(error)}`);
-      AppStorage.setOrCreate('isImmersiveTab', false);
-      AppStorage.setOrCreate('isImmersiveStatusBar', false);
-    }
+    // 状态栏沉浸设置不记忆，每次启动默认关闭
+    AppStorage.setOrCreate('isImmersiveStatusBar', false);
   }
 
   // 应用接续：保存迁移数据

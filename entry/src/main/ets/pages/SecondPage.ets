@@ -10,7 +10,6 @@ let ttsEngine: textToSpeech.TextToSpeechEngine;
 export struct SecondPage {
   @ObjectLink mainWindowInfo: WindowInfo;
   @StorageLink('networkVideoSrc') networkVideoSrc: string = '';
-  @StorageLink('isImmersiveTab') isImmersiveTab: boolean = false;
   @StorageLink('isAtomicServiceBarImmersive') isAtomicServiceBarImmersive: boolean = false;
   @StorageProp('topRectHeight')
   topRectHeight: number = 0;
@@ -132,8 +131,8 @@ export struct SecondPage {
       .layoutWeight(1)
     }
     .height('100%')
-    .padding({ bottom: px2vp(this.bottomRectHeight) + (this.isImmersiveTab ? 84 : 0) })
-    .backgroundColor(Color.White)
+    .padding({ bottom: px2vp(this.bottomRectHeight) })
+    .backgroundColor($r('sys.color.ohos_id_color_background'))
   }
 
   createByCallback() {

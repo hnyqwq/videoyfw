@@ -1,6 +1,6 @@
 import { common, Want } from '@kit.AbilityKit';
 import { BusinessError, deviceInfo, pasteboard } from '@kit.BasicServicesKit';
-import { promptAction, window } from '@kit.ArkUI';
+import { promptAction, window, AtomicServiceWeb, AtomicServiceWebController } from '@kit.ArkUI';
 import { preferences } from '@kit.ArkData';
 import { bundleManager } from '@kit.AbilityKit';
 
@@ -35,8 +35,6 @@ export struct MinePage {
       'https://blog.hnyqwq.cn', 'https://blog.hnyqwq.cn')
   ];
 
-  // 沉浸Tab相关状态
-  @StorageLink('isImmersiveTab') isImmersiveTab: boolean = false;
   @StorageLink('isImmersiveStatusBar') isImmersiveStatusBar: boolean = false;
   @StorageLink('isAtomicServiceBarImmersive') isAtomicServiceBarImmersive: boolean = false;
   @StorageProp('bottomRectHeight') bottomRectHeight: number = 0;
@@ -53,6 +51,17 @@ export struct MinePage {
   async aboutToAppear(): Promise<void> {
     await this.checkDeviceCapability();
     await this.loadVersionInfo();
+  }
+
+  @State showWebView: boolean = false;
+  @State webViewUrl: string = '';
+  @State webViewTitle: ResourceStr = '';
+  @State webController: AtomicServiceWebController = new AtomicServiceWebController();
+  // 使用AtomicServiceEnhancedWeb组件内嵌打开链接（元服务不支持startAbility打开外部链接）
+  private openInWebView(url: string, title: ResourceStr): void {
+    this.webViewUrl = url;
+    this.webViewTitle = title;
+    this.showWebView = true;
   }
 
   // 检测设备能力
@@ -73,17 +82,6 @@ export struct MinePage {
     } catch (error) {
       console.error('获取版本信息失败:', error);
     }
-  }
-
-  // 切换沉浸Tab
-  private async toggleImmersiveTab(): Promise<void> {
-    const newValue = !this.isImmersiveTab;
-    this.isImmersiveTab = newValue;
-    await this.saveImmersiveSetting('isImmersiveTab', newValue);
-    
-    promptAction.showToast({ 
-      message: newValue ? $r('app.string.immersive_tab_enabled') : $r('app.string.immersive_tab_disabled')
-    });
   }
 
   // 切换顶部状态栏沉浸化（不保存设置，每次启动需手动开启）
@@ -170,7 +168,8 @@ export struct MinePage {
   }
 
   build() {
-    Scroll() {
+    Stack() {
+      Scroll() {
       Column() {
         // 顶部用户信息区域
         Column() {
@@ -355,8 +354,10 @@ export struct MinePage {
         Column() {
           Text() {
             Span($r('app.string.appysxy'))
-              .onClick(() => this.openUrl('https://agreement-drcn.hispace.dbankcloud.cn/index.html?lang=zh&agreementId=1756976742938995392'))
-              .fontColor($r('app.color.brand_color'))
+              .onClick(() => {
+                this.openInWebView('https://agreement-drcn.hispace.dbankcloud.cn/index.html?lang=zh&agreementId=1973580013525556416', $r('app.string.appysxy'));
+              })
+              .fontColor(Color.Blue)
               .fontWeight(FontWeight.Regular)
               .fontSize($r('sys.float.Body_S'))
           }
@@ -372,10 +373,12 @@ export struct MinePage {
               .fontSize($r('sys.float.Body_S'))*/
           }
           Text() {
-            Span('蜀ICP备2025142744号-5K')
-              .onClick(() => this.openUrl('https://beian.miit.gov.cn'))
-              .fontColor($r('app.color.brand_color'))
-              .fontSize($r('sys.float.Body_S'))
+            Span('蜀ICP备2025142744号-10K')
+              .onClick(() => {
+                this.openInWebView('https://beian.miit.gov.cn', '蜀ICP备2025142744号-10K');
+              })
+              .fontColor(Color.Blue)
+              .fontSize(12);
           }
         }
         .width('100%')
@@ -383,15 +386,50 @@ export struct MinePage {
         .alignItems(HorizontalAlign.Center)
       }
       .width('100%')
-      .padding({ bottom: px2vp(this.bottomRectHeight) + (this.isImmersiveTab ? 84 : 0) })
+      .padding({ bottom: px2vp(this.bottomRectHeight) })
     }
     .width('100%')
     .height('100%')
     .scrollBar(BarState.Off)
     .edgeEffect(EdgeEffect.Spring)
-    .padding({ bottom: this.isImmersiveTab ? 0 : px2vp(this.bottomRectHeight) })
+    .padding({ bottom: px2vp(this.bottomRectHeight) })
     .backgroundColor($r('sys.color.ohos_id_color_background'))
     .expandSafeArea([SafeAreaType.SYSTEM])
+
+      // WebView覆盖层
+      if (this.showWebView) {
+        Column() {
+          Row() {
+            SymbolGlyph($r('sys.symbol.chevron_left'))
+              .fontSize(24)
+              .fontColor([$r('sys.color.font_primary')])
+              .margin({ left: 16 })
+              .onClick(() => { this.showWebView = false; })
+            Text(this.webViewTitle)
+              .fontSize(16)
+              .fontWeight(FontWeight.Medium)
+              .fontColor($r('sys.color.font_primary'))
+              .margin({ left: 12 })
+          }
+          .width('100%')
+          .padding({ top: px2vp(this.topRectHeight) + 50, bottom: 12, left: 0, right: 0 })
+          .backgroundColor($r('sys.color.ohos_id_color_background'))
+          .border({ width: { bottom: 0.5 }, color: $r('sys.color.ohos_id_color_list_separator') })
+
+          AtomicServiceWeb({
+            src: this.webViewUrl,
+            controller: this.webController,
+          })
+            .width('100%')
+            .layoutWeight(1)
+        }
+        .width('100%')
+        .height('100%')
+        .backgroundColor($r('sys.color.ohos_id_color_background'))
+      }
+    }
+    .width('100%')
+    .height('100%')
   }
 
   // 复制链接到剪贴板

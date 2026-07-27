@@ -10,7 +10,6 @@ import { WindowUtil } from '../utils/WindowUtil';
 @Component
 export struct HomeImmersive {
   @StorageLink('currentWidthBreakpoint') currentWidthBreakpoint: string = 'sm';
-  @StorageLink('isImmersiveTab') isImmersiveTab: boolean = true;
   @StorageLink('currentTabIndex') firstLevelIndex: number = 0;
   @StorageProp('bottomRectHeight') bottomRectHeight: number = 0;
   @StorageProp('topRectHeight') topRectHeight: number = 0;
@@ -134,11 +133,11 @@ export struct HomeImmersive {
       Text(name)
         .fontSize(10)
         .fontWeight(500)
-        .fontColor(index === this.firstLevelIndex ? '#0A59F7' : '#999999')
+        .fontColor(index === this.firstLevelIndex ? $r('sys.color.brand') : $r('sys.color.font_secondary'))
         .margin({ top: 4 })
     }
     .width('100%')
-    .height(!this.isImmersiveTab && this.isTabletMode() ? 100 : '100%')
+    .height(this.isTabletMode() ? 100 : '100%')
     .justifyContent(FlexAlign.Center)
   }
 
@@ -171,6 +170,7 @@ export struct HomeImmersive {
       .scrollable(false)
       .height('100%')
       .width('100%')
+      .barBackgroundColor($r('sys.color.ohos_id_color_background'))
       .expandSafeArea([SafeAreaType.SYSTEM])
       .padding({ bottom: px2vp(this.bottomRectHeight) })
     }

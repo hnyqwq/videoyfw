@@ -13,7 +13,6 @@ import { WindowInfo } from '../utils/WindowInfo';
 @Component
 export struct Home {
   @StorageLink('currentWidthBreakpoint') currentWidthBreakpoint: string = 'sm';
-  @StorageLink('isImmersiveTab') isImmersiveTab: boolean = false;
   @StorageLink('currentTabIndex') firstLevelIndex: number = 0;
   @StorageProp('bottomRectHeight') bottomRectHeight: number = 0;
   @StorageLink('windowUtil') windowUtil: WindowUtil | undefined = undefined;
@@ -45,10 +44,6 @@ export struct Home {
     } catch (e) {
       console.error('Home: Failed to subscribe shortcutNavigate event:', e);
     }
-
-    // 传统模式，强制设置isImmersiveTab为false
-    AppStorage.setOrCreate('isImmersiveTab', false);
-    console.info('Home: 传统模式 - isImmersiveTab = false');
 
     // 初始化当前Tab索引
     AppStorage.setOrCreate('currentTabIndex', 0);
@@ -136,7 +131,7 @@ export struct Home {
       Text(name)
         .fontSize(10)
         .fontWeight(500)
-        .fontColor(index === this.firstLevelIndex ? '#0A59F7' : '#999999')
+        .fontColor(index === this.firstLevelIndex ? $r('sys.color.brand') : $r('sys.color.font_secondary'))
         .margin({ top: 4 })
     }
     .padding({
@@ -214,6 +209,7 @@ export struct Home {
       .scrollable(false)
       .height('100%')
       .width('100%')
+      .barBackgroundColor($r('sys.color.ohos_id_color_background'))
       .padding({ bottom: px2vp(this.bottomRectHeight) })
     }
   }

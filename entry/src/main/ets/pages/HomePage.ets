@@ -50,7 +50,6 @@ export struct HomePage {
   @State whiteStatus: boolean = false;
   @State isKnockShareSupported: boolean = false;
   @ObjectLink mainWindowInfo: WindowInfo;
-  @StorageLink('isImmersiveTab') isImmersiveTab: boolean = false;
   @StorageLink('isImmersiveStatusBar') isImmersiveStatusBar: boolean = false;
   @StorageLink('isAtomicServiceBarImmersive') isAtomicServiceBarImmersive: boolean = false;
   @StorageProp('bottomRectHeight') bottomRectHeight: number = 0;
@@ -1125,7 +1124,7 @@ export struct HomePage {
     }
     .width('100%')
     .justifyContent(FlexAlign.Start)
-    .padding({ bottom: px2vp(this.bottomRectHeight) + (this.isImmersiveTab ? 84 : 0) })
+    .padding({ bottom: px2vp(this.bottomRectHeight) })
   }
   .width('100%')
   .height('100%')
