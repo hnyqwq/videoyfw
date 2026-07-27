@@ -9,7 +9,7 @@ HarmonyOS APP ๑>ᴗO๑ —— by hnyqwq
 1. **安装**
     - 在 HarmonyOS 5 及以上系统的手机/平板/电脑的应用市场中搜索“云影工具屋”或通过以下链接下载安装：
       [应用市场链接](https://appgallery.huawei.com/app/detail?id=com.hny.video)
-    - 体验新版本，加入邀请测试链接：[AppTest邀请链接](https://appgallery.huawei.com/apptest/7bALvBIvIby)
+    - 体验新版本，加入邀请测试链接：[AppTest邀请链接](https://appgallery.huawei.com/apptest/52fRvA7p5Ow)
 
 2. **启动应用**
     - 安装完成后，点击桌面图标启动应用。
