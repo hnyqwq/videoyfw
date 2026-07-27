@@ -311,12 +311,12 @@ struct VideoExtractorPage {
       videoItems.push(item);
     }
 
-    hilog.info(0x0000, 'VideoExtractor', `Found ${videoItems.length} video links via intercept`);
+    hilog.info(0x0000, 'VideoExtractor', `Found ${videoItems.length} video links via intercept (collected ${this.collectedVideoUrls.size} URLs)`);
     this.extractedVideos = videoItems;
     this.webViewVisible = false;
 
     if (videoItems.length === 0) {
-      promptAction.showToast({ message: $r('app.string.no_video_found') });
+      promptAction.showToast({ message: `未找到视频（拦截到${this.collectedVideoUrls.size}个URL）`, duration: 3000 });
     } else {
       promptAction.showToast({ message: $r('app.string.found_videos', videoItems.length) });
     }
@@ -326,11 +326,9 @@ struct VideoExtractorPage {
 
   build() {
     Column() {
-      // 顶部避让状态栏
-      if (!this.isImmersiveStatusBar) {
-        Column()
-          .height(px2vp(this.topRectHeight))
-      }
+      // 顶部避让状态栏和元服务胶囊（胶囊固定避让50vp）
+      Column()
+        .height((this.isImmersiveStatusBar ? 0 : px2vp(this.topRectHeight)) + 50)
 
       // 顶部进度条和操作栏
       Row() {
@@ -372,17 +370,19 @@ struct VideoExtractorPage {
         onLoadIntercept: (event: OnLoadInterceptEvent) => {
           try {
             const reqUrl = event.data.getRequestUrl();
+            hilog.info(0x0000, 'VideoExtractor', `Intercept URL: ${reqUrl}`);
             if (reqUrl) {
               const lowerUrl = reqUrl.toLowerCase();
               for (const ext of this.videoExtensions) {
                 if (lowerUrl.includes(ext)) {
+                  hilog.info(0x0000, 'VideoExtractor', `>>> Video matched: ${reqUrl}`);
                   this.collectedVideoUrls.add(reqUrl);
                   break;
                 }
               }
             }
           } catch (e) {
-            // ignore
+            hilog.error(0x0000, 'VideoExtractor', `Intercept error: ${e}`);
           }
           return false;
         },

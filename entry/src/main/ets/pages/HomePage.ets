@@ -704,14 +704,11 @@ export struct HomePage {
           .margin({ left: 12 })
           .layoutWeight(1)
 
-          SymbolGlyph(this.showVideoExtractor ? $r('sys.symbol.chevron_up') : $r('sys.symbol.chevron_down'))
-            .fontSize(16)
-            .fontColor([$r('sys.color.font_primary')])
         }
         .width('100%')
         .padding(16)
         .onClick(() => {
-          this.showVideoExtractor = !this.showVideoExtractor;
+          promptAction.showToast({ message: $r('app.string.extract_not_supported_in_atomic_service'), duration: 3000 });
         })
         
         // 展开的提取面板
@@ -745,6 +742,22 @@ export struct HomePage {
                   symbolIcon: this.sampleIconModifier,
                   action: () => {
                     this.extractorUrl = 'https://www.pexels.com/zh-cn/video/15212177/';
+                    promptAction.showToast({ message: $r('app.string.sample_webpage_loaded') });
+                  }
+                },
+                {
+                  value: $r('app.string.sample_webpage_2'),
+                  symbolIcon: this.sampleIconModifier,
+                  action: () => {
+                    this.extractorUrl = 'https://www.pexels.com/zh-cn/video/2847281/';
+                    promptAction.showToast({ message: $r('app.string.sample_webpage_loaded') });
+                  }
+                },
+                {
+                  value: $r('app.string.sample_webpage_3'),
+                  symbolIcon: this.sampleIconModifier,
+                  action: () => {
+                    this.extractorUrl = 'https://www.w3schools.com/html/html5_video.asp';
                     promptAction.showToast({ message: $r('app.string.sample_webpage_loaded') });
                   }
                 },
@@ -1477,11 +1490,8 @@ export struct HomePage {
       promptAction.showToast({ message: $r('app.string.enter_valid_webpage_link') });
       return;
     }
-    // 跳转到 VideoExtractorPage 进行视频提取
-    router.pushUrl({
-      url: 'pages/VideoExtractorPage',
-      params: { initialUrl: url }
-    }, router.RouterMode.Standard);
+    // 元服务不支持视频提取，提示用户使用APP
+    promptAction.showToast({ message: $r('app.string.extract_not_supported_in_atomic_service'), duration: 3000 });
   }
 
   private playExtractedVideo(url: string): void {

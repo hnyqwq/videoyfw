@@ -546,7 +546,7 @@
     },
     {
       "name": "web_video_extractor_desc",
-      "value": "输入网页链接，提取源码中明文的视频链接（如 mp4、m3u8 等格式）；动态加载、加密（DRM/blob）、需登录或单页应用动态渲染的内容无法提取"
+      "value": "视频提取功能仅APP可用，元服务暂不支持。可先填入链接，安装APP后使用完整提取功能"
     },
     {
       "name": "extractor_input_placeholder",
@@ -760,7 +760,7 @@
     },
     {
       "name": "ai_core_speech_support",
-      "value": "基于AI Core语音合成能力，输入文字即可朗读"
+      "value": "内容由 AI 生成，使用 Core Speech Kit"
     },
     {
       "name": "speak",
@@ -789,6 +789,18 @@
     {
       "name": "atomic_service_knock_not_supported",
       "value": "APP支持碰一碰分享，元服务暂不支持"
+    },
+    {
+      "name": "sample_webpage_2",
+      "value": "示例网页2"
+    },
+    {
+      "name": "sample_webpage_3",
+      "value": "示例网页3"
+    },
+    {
+      "name": "extract_not_supported_in_atomic_service",
+      "value": "视频提取功能仅APP可用，元服务暂不支持"
     }
   ]
 }

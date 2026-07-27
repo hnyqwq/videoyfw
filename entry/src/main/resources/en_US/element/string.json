@@ -546,7 +546,7 @@
     },
     {
       "name": "web_video_extractor_desc",
-      "value": "Enter a webpage link to extract plain-text video URLs in the source (e.g. mp4, m3u8); dynamically loaded, encrypted (DRM/blob), login-required, or SPA-rendered content cannot be extracted"
+      "value": "Video extraction is only available in the APP, not in atomic service. Enter a link and install the APP for full extraction"
     },
     {
       "name": "extractor_input_placeholder",
@@ -760,7 +760,7 @@
     },
     {
       "name": "ai_core_speech_support",
-      "value": "Powered by AI Core speech synthesis. Enter text to read aloud."
+      "value": "AI powered, using Core Speech Kit"
     },
     {
       "name": "speak",
@@ -789,6 +789,18 @@
     {
       "name": "atomic_service_knock_not_supported",
       "value": "The app supports knock share, but atomic service does not yet support it"
+    },
+    {
+      "name": "sample_webpage_2",
+      "value": "Example 2"
+    },
+    {
+      "name": "sample_webpage_3",
+      "value": "Example 3"
+    },
+    {
+      "name": "extract_not_supported_in_atomic_service",
+      "value": "Video extraction is only available in the APP, not supported in atomic service"
     }
   ]
 }
