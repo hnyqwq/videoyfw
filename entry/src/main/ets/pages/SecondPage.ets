@@ -84,11 +84,24 @@ export struct SecondPage {
           .margin({ top: 10 })
           .backgroundColor(Color.Transparent)
           .onClick(() => {
-            try {
-              this.createByCallback();
-            } catch (err) {
-              const error: BusinessError = err as BusinessError;
-              console.error(`CreateEngine error, the code is ${error.code}, the message is ${error.message}`);
+            if (this.isPlaying) {
+              // 正在播放，点击停止
+              try {
+                ttsEngine?.stop();
+                ttsEngine?.shutdown();
+              } catch (err) {
+                const error: BusinessError = err as BusinessError;
+                console.error(`The ttsEngine invoke error, the code is ${error.code}, the message is ${error.message}`);
+              }
+              AppStorage.setOrCreate('isPlaying', false);
+            } else {
+              // 未播放，点击开始
+              try {
+                this.createByCallback();
+              } catch (err) {
+                const error: BusinessError = err as BusinessError;
+                console.error(`CreateEngine error, the code is ${error.code}, the message is ${error.message}`);
+              }
             }
           })
           .width('40vp')
@@ -149,8 +162,22 @@ export struct SecondPage {
         AppStorage.setOrCreate('isPlaying', true);
       },
       onComplete(requestId: string, response: textToSpeech.CompleteResponse) {
-        console.log('onComplete');
-        AppStorage.setOrCreate('isPlaying', false);
+        console.log('onComplete - 合成完成，轮询等待播放结束');
+        // onComplete在合成完成时触发，音频可能仍在播放
+        // 轮询isBusy()直到播放真正结束
+        const pollBusy = () => {
+          try {
+            if (ttsEngine && ttsEngine.isBusy()) {
+              setTimeout(pollBusy, 300);
+            } else {
+              AppStorage.setOrCreate('isPlaying', false);
+              ttsEngine?.shutdown();
+            }
+          } catch (e) {
+            AppStorage.setOrCreate('isPlaying', false);
+          }
+        };
+        setTimeout(pollBusy, 300);
       },
       onStop(requestId: string, response: textToSpeech.StopResponse) {
         console.log('onStop');
