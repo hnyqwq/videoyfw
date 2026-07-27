@@ -765,6 +765,26 @@
     {
       "name": "speak",
       "value": "请输入要朗读的文字"
+    },
+    {
+      "name": "invite_test",
+      "value": "加入邀请测试"
+    },
+    {
+      "name": "atomic_service_bar_immersive_title",
+      "value": "元服务胶囊沉浸"
+    },
+    {
+      "name": "atomic_service_bar_immersive_desc",
+      "value": "让内容延伸到元服务胶囊区域，需每次手动开启"
+    },
+    {
+      "name": "atomic_service_bar_immersive_enabled",
+      "value": "元服务胶囊沉浸已开启"
+    },
+    {
+      "name": "atomic_service_bar_immersive_disabled",
+      "value": "元服务胶囊沉浸已关闭"
     }
   ]
 }

@@ -1,5 +1,5 @@
 import { common, Want } from '@kit.AbilityKit';
-import { deviceInfo } from '@kit.BasicServicesKit';
+import { BusinessError, deviceInfo, pasteboard } from '@kit.BasicServicesKit';
 import { promptAction, window } from '@kit.ArkUI';
 import { preferences } from '@kit.ArkData';
 import { bundleManager } from '@kit.AbilityKit';
@@ -26,7 +26,7 @@ class SettingMenu {
 export struct MinePage {
   private iconStr: ResourceStr = $r("app.media.CIcon");
   @State menuGroup: SettingMenu[] = [
-    new SettingMenu('vipownsetting', $r('sys.symbol.star'), $r('app.string.mine2')),
+    new SettingMenu('vipownsetting', $r('sys.symbol.person_badge_plus'), $r('app.string.invite_test')),
     new SettingMenu('mycollection', $r('sys.symbol.heart'), $r('app.string.mine3'),
       'bilibili://space/338142387', 'https://space.bilibili.com/338142387'),
     new SettingMenu('mylike', $r('sys.symbol.hand_thumbsup'), $r('app.string.mine4'),
@@ -38,6 +38,7 @@ export struct MinePage {
   // 沉浸Tab相关状态
   @StorageLink('isImmersiveTab') isImmersiveTab: boolean = false;
   @StorageLink('isImmersiveStatusBar') isImmersiveStatusBar: boolean = false;
+  @StorageLink('isAtomicServiceBarImmersive') isAtomicServiceBarImmersive: boolean = false;
   @StorageProp('bottomRectHeight') bottomRectHeight: number = 0;
   @StorageProp('topRectHeight') topRectHeight: number = 0;
   @State isPcDevice: boolean = false; // 是否是PC/2in1设备
@@ -45,6 +46,9 @@ export struct MinePage {
   @State appName: string = ''; // 应用包名
   private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
   private preferencesStore: preferences.Preferences | null = null;
+
+  private readonly inviteTestUrl: string = 'https://appgallery.huawei.com/apptest/52fRvA7p5Ow';
+  private readonly blogUrl: string = 'https://blog.hnyqwq.cn';
 
   async aboutToAppear(): Promise<void> {
     await this.checkDeviceCapability();
@@ -112,6 +116,14 @@ export struct MinePage {
 
     promptAction.showToast({
       message: newValue ? $r('app.string.immersive_status_bar_enabled') : $r('app.string.immersive_status_bar_disabled')
+    });
+  }
+
+  // 切换元服务胶囊沉浸（不保存设置，每次启动需手动开启）
+  private toggleAtomicServiceBarImmersive(): void {
+    this.isAtomicServiceBarImmersive = !this.isAtomicServiceBarImmersive;
+    promptAction.showToast({
+      message: this.isAtomicServiceBarImmersive ? $r('app.string.atomic_service_bar_immersive_enabled') : $r('app.string.atomic_service_bar_immersive_disabled')
     });
   }
 
@@ -185,10 +197,37 @@ export struct MinePage {
             .margin({ top: 4 })
         }
         .width('100%')
-        .padding({ top: (this.isImmersiveStatusBar ? 0 : px2vp(this.topRectHeight)) + 10, bottom: 30 })
+        .padding({ top: (this.isImmersiveStatusBar ? 0 : px2vp(this.topRectHeight)) + (this.isAtomicServiceBarImmersive ? 0 : 38) + 10, bottom: 30 })
 
         // 菜单列表区域
         Column() {
+          // 元服务胶囊沉浸开关
+          Row() {
+            Column() {
+              Text($r('app.string.atomic_service_bar_immersive_title'))
+                .fontSize(16)
+                .fontColor($r('app.color.font_color_182431'))
+              Text($r('app.string.atomic_service_bar_immersive_desc'))
+                .fontSize(12)
+                .fontColor($r('sys.color.font_secondary'))
+                .margin({ top: 2 })
+            }
+            .alignItems(HorizontalAlign.Start)
+            .layoutWeight(1)
+
+            Toggle({ type: ToggleType.Switch, isOn: this.isAtomicServiceBarImmersive })
+              .selectedColor($r('sys.color.ohos_id_color_activated'))
+              .onChange((isOn: boolean) => {
+                this.toggleAtomicServiceBarImmersive();
+              })
+          }
+          .width('100%')
+          .padding({ left: 20, right: 20, top: 12, bottom: 12 })
+          .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
+          .borderRadius(12)
+          .border({ width: 1, color: $r('app.color.list_border_color') })
+          .margin({ bottom: 12 })
+
           // 状态栏沉浸开关
           Row() {
             Column() {
@@ -230,16 +269,52 @@ export struct MinePage {
                     .fontSize(22)
                     .fontColor([$r('sys.color.icon_primary')])
 
-                  Text(item.text)
-                    .fontSize(16)
-                    .fontColor($r('app.color.font_color_182431'))
-                    .margin({ left: 16 })
+                  if (item.id === 'vipownsetting') {
+                    Column() {
+                      Text($r('app.string.invite_test'))
+                        .fontSize($r('sys.float.Subtitle_M'))
+                        .fontWeight(FontWeight.Medium)
+                        .fontColor($r('sys.color.font_primary'))
+                        .margin({ left: $r('sys.float.padding_level8') })
+                      Text(this.inviteTestUrl)
+                        .fontSize($r('sys.float.Caption_S'))
+                        .fontColor($r('sys.color.font_tertiary'))
+                        .margin({ left: $r('sys.float.padding_level8'), top: 2 })
+                        .maxLines(1)
+                        .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    }
+                    .alignItems(HorizontalAlign.Start)
                     .layoutWeight(1)
+                  } else if (item.id === 'browsinghistory') {
+                    Column() {
+                      Text($r('app.string.mine5'))
+                        .fontSize($r('sys.float.Subtitle_M'))
+                        .fontWeight(FontWeight.Medium)
+                        .fontColor($r('sys.color.font_primary'))
+                        .margin({ left: $r('sys.float.padding_level8') })
+                      Text(this.blogUrl)
+                        .fontSize($r('sys.float.Caption_S'))
+                        .fontColor($r('sys.color.font_tertiary'))
+                        .margin({ left: $r('sys.float.padding_level8'), top: 2 })
+                        .maxLines(1)
+                        .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    }
+                    .alignItems(HorizontalAlign.Start)
+                    .layoutWeight(1)
+                  } else {
+                    Text(item.text)
+                      .fontSize(16)
+                      .fontColor($r('app.color.font_color_182431'))
+                      .margin({ left: 16 })
+                      .layoutWeight(1)
+                  }
 
-                  Image($r('sys.media.ohos_ic_public_arrow_right'))
-                    .width(16)
-                    .height(16)
-                    .fillColor($r('sys.color.icon_secondary'))
+                  if (item.id !== 'vipownsetting' && item.id !== 'browsinghistory') {
+                    Image($r('sys.media.ohos_ic_public_arrow_right'))
+                      .width(16)
+                      .height(16)
+                      .fillColor($r('sys.color.icon_secondary'))
+                  }
                 }
                 .width('100%')
                 .height(56)
@@ -247,7 +322,11 @@ export struct MinePage {
                 .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
                 .onClick(() => {
                     if (item.id === 'vipownsetting') {
-                      this.openUrl('https://appgallery.huawei.com/apptest/7bALvBIvIby');
+                      this.copyLinkToClipboard(this.inviteTestUrl);
+                      return;
+                    }
+                    if (item.id === 'browsinghistory') {
+                      this.copyLinkToClipboard(this.blogUrl);
                       return;
                     }
                     if (item.uri) {
@@ -313,6 +392,17 @@ export struct MinePage {
     .padding({ bottom: this.isImmersiveTab ? 0 : px2vp(this.bottomRectHeight) })
     .backgroundColor($r('sys.color.ohos_id_color_background'))
     .expandSafeArea([SafeAreaType.SYSTEM])
+  }
+
+  // 复制链接到剪贴板
+  private copyLinkToClipboard(url: string): void {
+    const pasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, url);
+    const systemPasteboard = pasteboard.getSystemPasteboard();
+    systemPasteboard.setData(pasteData).then(() => {
+      promptAction.showToast({ message: '链接已复制', duration: 1500 });
+    }).catch((err: BusinessError) => {
+      console.error('复制链接失败: ' + err.message);
+    });
   }
 
   // 打开URL

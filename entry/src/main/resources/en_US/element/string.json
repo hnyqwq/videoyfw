@@ -765,6 +765,26 @@
     {
       "name": "speak",
       "value": "Enter text to speak"
+    },
+    {
+      "name": "invite_test",
+      "value": "Join Beta Test"
+    },
+    {
+      "name": "atomic_service_bar_immersive_title",
+      "value": "Atomic Service Bar Immersive"
+    },
+    {
+      "name": "atomic_service_bar_immersive_desc",
+      "value": "Extend content into the atomic service bar area, enable manually each time"
+    },
+    {
+      "name": "atomic_service_bar_immersive_enabled",
+      "value": "Atomic service bar immersive enabled"
+    },
+    {
+      "name": "atomic_service_bar_immersive_disabled",
+      "value": "Atomic service bar immersive disabled"
     }
   ]
 }

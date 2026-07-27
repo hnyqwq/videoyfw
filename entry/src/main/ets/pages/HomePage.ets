@@ -52,6 +52,7 @@ export struct HomePage {
   @ObjectLink mainWindowInfo: WindowInfo;
   @StorageLink('isImmersiveTab') isImmersiveTab: boolean = false;
   @StorageLink('isImmersiveStatusBar') isImmersiveStatusBar: boolean = false;
+  @StorageLink('isAtomicServiceBarImmersive') isAtomicServiceBarImmersive: boolean = false;
   @StorageProp('bottomRectHeight') bottomRectHeight: number = 0;
   @StorageProp('topRectHeight') topRectHeight: number = 0;
   
@@ -488,10 +489,10 @@ export struct HomePage {
     Stack() {
     Scroll() {
       Column() {
-        // 顶部避让状态栏
-        if (!this.isImmersiveStatusBar) {
+        // 顶部避让状态栏和元服务胶囊
+        if (!this.isImmersiveStatusBar || !this.isAtomicServiceBarImmersive) {
           Column()
-            .height(px2vp(this.topRectHeight))
+            .height((this.isImmersiveStatusBar ? 0 : px2vp(this.topRectHeight)) + (this.isAtomicServiceBarImmersive ? 0 : 38))
         }
         // 视频播放区域
       Stack() {

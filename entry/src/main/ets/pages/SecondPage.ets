@@ -11,6 +11,7 @@ export struct SecondPage {
   @ObjectLink mainWindowInfo: WindowInfo;
   @StorageLink('networkVideoSrc') networkVideoSrc: string = '';
   @StorageLink('isImmersiveTab') isImmersiveTab: boolean = false;
+  @StorageLink('isAtomicServiceBarImmersive') isAtomicServiceBarImmersive: boolean = false;
   @StorageProp('topRectHeight')
   topRectHeight: number = 0;
   @StorageProp('bottomRectHeight')
@@ -49,7 +50,7 @@ export struct SecondPage {
       }
       .width('100%')
       .height(56)
-      .padding({ top: px2vp(this.topRectHeight) })
+      .padding({ top: px2vp(this.topRectHeight) + (this.isAtomicServiceBarImmersive ? 0 : 38) })
 
       Column({ space: 20 }) {
         Text($r('app.string.sub_title2_value1'))
