@@ -8,7 +8,6 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { BusinessError, deviceInfo } from '@kit.BasicServicesKit';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { util } from '@kit.ArkTS';
-import { uniformTypeDescriptor as utd } from '@kit.ArkData';
 import Logger from '../utils/Logger';
 import { http } from '@kit.NetworkKit';
 import { AtomicServiceWeb, AtomicServiceWebController } from '@kit.ArkUI';
@@ -18,8 +17,6 @@ import { pasteboard } from '@kit.BasicServicesKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
 
 //分享相关
-import { fileUri } from '@kit.CoreFileKit';
-import request from '@ohos.request';
 import router from '@ohos.router';
 import { image } from '@kit.ImageKit';
 import KnockShareGuideCard, { CardRes } from '../model/KnockShareGuideCard';
