@@ -133,6 +133,7 @@ export struct SecondPage {
     }
     .height('100%')
     .padding({ bottom: px2vp(this.bottomRectHeight) + (this.isImmersiveTab ? 84 : 0) })
+    .backgroundColor(Color.White)
   }
 
   createByCallback() {
