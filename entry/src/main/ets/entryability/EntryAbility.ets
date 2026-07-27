@@ -159,7 +159,7 @@ export default class EntryAbility extends UIAbility {
 
       // 配置窗口整体底色和系统栏颜色，适配深色模式
       const isDarkMode = this.context.config?.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
-      const bgColor = isDarkMode ? '#000000' : '#F1F3F5';
+      const bgColor = isDarkMode ? '#000000' : '#FFFFFF';
       windowClass.setWindowBackgroundColor(bgColor);
       windowClass.setWindowSystemBarProperties({
         navigationBarColor: bgColor,
