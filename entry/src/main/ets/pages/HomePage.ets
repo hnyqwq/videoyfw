@@ -940,7 +940,8 @@ export struct HomePage {
               .fontSize(12)
               .fontColor($r('sys.color.font_primary'))
               .margin({ top: 6 })
-              .textOverflow({ overflow: TextOverflow.MARQUEE })
+              .textAlign(TextAlign.Center)
+              //.textOverflow({ overflow: TextOverflow.MARQUEE })
           }
           .width('100%')
           .height('100%')
