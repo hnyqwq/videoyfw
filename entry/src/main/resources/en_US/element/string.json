@@ -682,7 +682,7 @@
     },
     {
       "name": "website_login_required",
-      "value": "This website requires login, please log in via WebView"
+      "value": "This website requires login, please log in via the web page"
     },
     {
       "name": "webpage_access_failed",
@@ -745,6 +745,26 @@
     {
       "name": "yuanfuwu",
       "value": "Full-screen landscape mode, remains in landscape after exiting full screen"
+    },
+    {
+      "name": "web_domain_not_configured",
+      "value": "The webpage domain is not configured in the atomic service. Please configure the business domain in AGC console and retry."
+    },
+    {
+      "name": "anim_load_failed",
+      "value": "Some animation resources failed to load. Please check your network and retry."
+    },
+    {
+      "name": "sub_title2_value1",
+      "value": "Text to Speech"
+    },
+    {
+      "name": "ai_core_speech_support",
+      "value": "Powered by AI Core speech synthesis. Enter text to read aloud."
+    },
+    {
+      "name": "speak",
+      "value": "Enter text to speak"
     }
   ]
 }

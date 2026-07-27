@@ -9,6 +9,30 @@ const GUIDE_CARD_MULTIPLE_MIN_HEIGHT = 90;
 const GUIDE_CARD_SINGLE_MIN_HEIGHT = 80;
 
 const logger = Logger.getLogger('[KnockShareGuideCard]');
+const MAX_CONCURRENT_REQUESTS = 6;
+
+// 模块级缓存：所有卡片实例共享，避免重复下载
+const frameCache = new Map<string, ImageFrameInfo>();
+
+// 并发限流器，防止瞬间发起数百个HTTP请求导致libhttp CFI崩溃
+class Semaphore {
+  private max: number;
+  private running = 0;
+  private waiters: (() => void)[] = [];
+  constructor(max: number) {
+    this.max = max;
+  }
+  async acquire(): Promise<void> {
+    if (this.running < this.max) { this.running++; return; }
+    await new Promise<void>(res => this.waiters.push(() => { this.running++; res(); }));
+  }
+  release(): void {
+    this.running--;
+    const next = this.waiters.shift();
+    if (next) next();
+  }
+}
+const limiter = new Semaphore(MAX_CONCURRENT_REQUESTS);
 
 export interface CardRes {
   title: ResourceStr;
@@ -30,29 +54,20 @@ export struct KnockShareSingleGuideCard {
   @State animReady: boolean = false;
   private animFrames: ImageFrameInfo[] = [];
   private staticFrame: ImageFrameInfo[] = [];
+  private isCancelled: boolean = false;
 
   aboutToAppear(): void {
+    this.isCancelled = false;
     this.loadPixels().then(() => {
-      this.animReady = true;
+      if (!this.isCancelled) {
+        this.animReady = true;
+      }
     });
   }
 
   aboutToDisappear(): void {
-    // 释放所有动画帧的PixelMap资源，防止内存泄露
-    this.releaseAnimFrames();
-  }
-
-  // 释放动画帧资源
-  private releaseAnimFrames(): void {
-    for (let frame of this.animFrames) {
-      if (frame.src && typeof frame.src !== 'string') {
-        try {
-          (frame.src as PixelMap).release();
-        } catch (e) {
-          logger.error(`Failed to release PixelMap: ${e}`);
-        }
-      }
-    }
+    this.isCancelled = true;
+    // PixelMap由模块级共享缓存管理，组件销毁时仅清空本地引用，避免释放其他实例仍在使用的资源
     this.animFrames = [];
     this.animReady = false;
   }
@@ -162,35 +177,59 @@ export struct KnockShareSingleGuideCard {
     for (let i = 1; i <= this.res.framesCount; i++) {
       tasks.push(this.loadByNetwork(i));
     }
-    this.animFrames = await Promise.all(tasks);
+    const results = await Promise.all(tasks);
+    if (!this.isCancelled) {
+      this.animFrames = results;
+    }
   }
 
   private async loadByNetwork(index: number): Promise<ImageFrameInfo> {
     const url = this.getUrl(index);
-    let src: string | PixelMap = url;
+    const duration = Math.floor(1000 / (this.res.fps ?? 30)) +
+      (index === 1 ? (this.res.startDelay ?? 0) : (index === this.res.framesCount ? (this.res.stopDelay ?? 0) : 0));
+
+    // 命中缓存直接返回
+    const cached = frameCache.get(url);
+    if (cached) {
+      return cached;
+    }
+
+    await limiter.acquire();
+    if (this.isCancelled) {
+      limiter.release();
+      return { src: url, duration };
+    }
+
+    const httpRequest = http.createHttp();
     let imageSource: image.ImageSource | undefined = undefined;
 
     try {
-      const httpRequest = http.createHttp();
       const response = await httpRequest.request(url, {
         method: http.RequestMethod.GET,
         connectTimeout: 10000,
         readTimeout: 10000,
       });
 
+      if (this.isCancelled) {
+        return { src: url, duration };
+      }
+
       if (response.responseCode === 200 && response.result instanceof ArrayBuffer) {
         imageSource = image.createImageSource(response.result);
+        const pixelMap = await imageSource.createPixelMap();
+        const frameInfo: ImageFrameInfo = { src: pixelMap, duration };
+        frameCache.set(url, frameInfo);
+        return frameInfo;
       }
-      httpRequest.destroy();
     } catch (err) {
       logger.error(`Failed to load by network: ${err?.code}, ${err?.message}`);
+    } finally {
+      try { httpRequest.destroy(); } catch (e) { /* ignore */ }
+      limiter.release();
     }
 
-    return {
-      src: src,
-      duration: Math.floor(1000 / (this.res.fps ?? 30)) +
-        (index === 1 ? (this.res.startDelay ?? 0) : (index === this.res.framesCount ? (this.res.stopDelay ?? 0) : 0)),
-    };
+    // 降级：返回URL字符串，让ImageAnimator自行加载
+    return { src: url, duration };
   }
 
   private getUrl(index: number): string {

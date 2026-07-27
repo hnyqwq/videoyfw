@@ -682,7 +682,7 @@
     },
     {
       "name": "website_login_required",
-      "value": "该网站需要登录，请在WebView中完成登录"
+      "value": "该网站需要登录，请在网页中完成登录"
     },
     {
       "name": "webpage_access_failed",
@@ -745,6 +745,26 @@
     {
       "name": "yuanfuwu",
       "value": "全屏横屏填充，退出全屏后为横屏"
+    },
+    {
+      "name": "web_domain_not_configured",
+      "value": "该网页域名未在元服务中配置，请在AGC控制台配置业务域名后重试"
+    },
+    {
+      "name": "anim_load_failed",
+      "value": "部分动画资源加载失败，请检查网络后重试"
+    },
+    {
+      "name": "sub_title2_value1",
+      "value": "文字转语音"
+    },
+    {
+      "name": "ai_core_speech_support",
+      "value": "基于AI Core语音合成能力，输入文字即可朗读"
+    },
+    {
+      "name": "speak",
+      "value": "请输入要朗读的文字"
     }
   ]
 }

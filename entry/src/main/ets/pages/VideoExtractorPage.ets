@@ -1,7 +1,6 @@
 import { hilog } from '@kit.PerformanceAnalysisKit';
-import { promptAction } from '@kit.ArkUI';
+import { promptAction, AtomicServiceWeb, AtomicServiceWebController } from '@kit.ArkUI';
 import { BusinessError } from '@kit.BasicServicesKit';
-import { webview } from '@kit.ArkWeb';
 import router from '@ohos.router';
 
 class VideoLink {
@@ -27,9 +26,10 @@ struct VideoExtractorPage {
   @StorageLink('networkVideoSrc') networkVideoSrc: string = '';
   @StorageLink('extractedVideos') extractedVideos: VideoLinkItem[] = [];
 
-  private webController: webview.WebviewController = new webview.WebviewController();
+  @State webController: AtomicServiceWebController = new AtomicServiceWebController();
   private currentUrl: string = '';
   private webViewTimeoutId: number = 0;
+  private collectedVideoUrls: Set<string> = new Set();
 
   private readonly videoExtensions: string[] = [
     '.mp4', '.webm', '.mov', '.mkv', '.avi', '.flv', '.wmv', '.m4v', '.3gp', '.ogv', '.ts', '.m3u8'
@@ -262,6 +262,7 @@ struct VideoExtractorPage {
     this.currentUrl = url;
     this.loadProgress = 0;
     this.webSrc = url;
+    this.collectedVideoUrls.clear();
 
     // 设置60秒超时
     this.webViewTimeoutId = setTimeout(() => {
@@ -284,47 +285,43 @@ struct VideoExtractorPage {
     }
   }
 
-  // 从WebView获取HTML并解析，结果传回首页
-  private getHtmlFromWebView(): void {
+  // 处理通过onLoadIntercept拦截收集到的视频URL
+  private processCollectedVideos(): void {
     this.clearWebViewTimeout();
 
-    const jsCode = 'document.documentElement.outerHTML';
-
-    this.webController.runJavaScript(jsCode).then((html: string) => {
-      hilog.info(0x0000, 'VideoExtractor', `WebView HTML length: ${html.length}`);
-
-      const links = this.extractVideoLinks(html, this.currentUrl);
-      hilog.info(0x0000, 'VideoExtractor', `Found ${links.length} video links`);
-
-      // 将结果转为首页 VideoLinkItem 格式并写入 AppStorage
-      const videoItems: VideoLinkItem[] = [];
-      for (const link of links) {
-        const item = new VideoLinkItem();
-        item.url = link.url;
-        item.type = link.type;
-        item.format = link.format;
-        item.size = 0;
-        item.sizeText = '';
-        videoItems.push(item);
+    const videoItems: VideoLinkItem[] = [];
+    const addedUrls = new Set<string>();
+    for (const url of this.collectedVideoUrls) {
+      if (addedUrls.has(url)) continue;
+      addedUrls.add(url);
+      const lowerUrl = url.toLowerCase();
+      let format = 'unknown';
+      for (const ext of this.videoExtensions) {
+        if (lowerUrl.includes(ext)) {
+          format = ext.replace('.', '');
+          break;
+        }
       }
-      this.extractedVideos = videoItems;
+      const item = new VideoLinkItem();
+      item.url = url;
+      item.type = 'resource';
+      item.format = format;
+      item.size = 0;
+      item.sizeText = '';
+      videoItems.push(item);
+    }
 
-      this.webViewVisible = false;
+    hilog.info(0x0000, 'VideoExtractor', `Found ${videoItems.length} video links via intercept`);
+    this.extractedVideos = videoItems;
+    this.webViewVisible = false;
 
-      if (links.length === 0) {
-        promptAction.showToast({ message: $r('app.string.no_video_found') });
-      } else {
-        promptAction.showToast({ message: $r('app.string.found_videos', links.length) });
-      }
+    if (videoItems.length === 0) {
+      promptAction.showToast({ message: $r('app.string.no_video_found') });
+    } else {
+      promptAction.showToast({ message: $r('app.string.found_videos', videoItems.length) });
+    }
 
-      // 返回首页，结果列表在首页显示
-      router.back();
-    }).catch((err: BusinessError) => {
-      hilog.error(0x0000, 'VideoExtractor', `runJavaScript error: ${err.message}`);
-      this.webViewVisible = false;
-      promptAction.showToast({ message: $r('app.string.extract_failed', err.message ?? '') });
-      router.back();
-    });
+    router.back();
   }
 
   build() {
@@ -348,7 +345,7 @@ struct VideoExtractorPage {
           .margin({ right: 8 })
           .backgroundColor($r('sys.color.ohos_id_color_activated'))
           .onClick(() => {
-            this.getHtmlFromWebView();
+            this.processCollectedVideos();
           })
 
         Button($r('app.string.ve_cancel'))
@@ -368,45 +365,51 @@ struct VideoExtractorPage {
         .width('100%')
         .color($r('sys.color.ohos_id_color_activated'))
 
-      Web({ src: this.webSrc, controller: this.webController })
-        .width('100%')
-        .layoutWeight(1)
-        .javaScriptAccess(true)
-        .domStorageAccess(true)
-        .fileAccess(true)
-        .imageAccess(true)
-        .mixedMode(MixedMode.All)
-        .cacheMode(CacheMode.Default)
-        .javaScriptProxy({
-          object: {
-            postMessage: (msg: string) => {
-              hilog.info(0x0000, 'VideoExtractor', `JS message: ${msg}`);
+      AtomicServiceWeb({
+        src: this.webSrc,
+        controller: this.webController,
+        mixedMode: MixedMode.All,
+        onLoadIntercept: (event: OnLoadInterceptEvent) => {
+          try {
+            const reqUrl = event.data.getRequestUrl();
+            if (reqUrl) {
+              const lowerUrl = reqUrl.toLowerCase();
+              for (const ext of this.videoExtensions) {
+                if (lowerUrl.includes(ext)) {
+                  this.collectedVideoUrls.add(reqUrl);
+                  break;
+                }
+              }
             }
-          },
-          name: 'videoExtractor',
-          methodList: ['postMessage'],
-          controller: this.webController
-        })
-        .onPageBegin((event: OnPageBeginEvent) => {
+          } catch (e) {
+            // ignore
+          }
+          return false;
+        },
+        onPageBegin: (event: OnPageBeginEvent) => {
           hilog.info(0x0000, 'VideoExtractor', `Page begin: ${event?.url}`);
-        })
-        .onPageEnd(() => {
+        },
+        onPageEnd: () => {
           hilog.info(0x0000, 'VideoExtractor', 'Page end, ready to extract');
           this.loadProgress = 100;
           promptAction.showToast({ message: $r('app.string.ve_page_ready_to_extract') });
-        })
-        .onProgressChange((event: OnProgressChangeEvent) => {
+        },
+        onProgressChange: (event: OnProgressChangeEvent) => {
           if (event?.newProgress !== undefined) {
             this.loadProgress = event.newProgress;
             hilog.info(0x0000, 'VideoExtractor', `Loading progress: ${this.loadProgress}%`);
           }
-        })
-        .onErrorReceive((event: OnErrorReceiveEvent) => {
+        },
+        onErrorReceive: (event: OnErrorReceiveEvent) => {
           const errorInfo = event?.error?.getErrorInfo() ?? '';
           hilog.error(0x0000, 'VideoExtractor', `WebView error: ${errorInfo}`);
-          promptAction.showToast({ message: $r('app.string.webpage_load_error', errorInfo) });
-        })
-        .onHttpErrorReceive((event: OnHttpErrorReceiveEvent) => {
+          if (!errorInfo || errorInfo.includes('domain') || errorInfo.includes('block')) {
+            promptAction.showToast({ message: $r('app.string.web_domain_not_configured') });
+          } else {
+            promptAction.showToast({ message: $r('app.string.webpage_load_error', errorInfo) });
+          }
+        },
+        onHttpErrorReceive: (event: OnHttpErrorReceiveEvent) => {
           const responseCode = event?.response?.getResponseCode() ?? 0;
           hilog.error(0x0000, 'VideoExtractor', `HTTP error: ${responseCode}`);
 
@@ -418,7 +421,10 @@ struct VideoExtractorPage {
             promptAction.showToast({ message: $r('app.string.webpage_access_failed', responseCode) });
             router.back();
           }
-        })
+        }
+      })
+        .width('100%')
+        .layoutWeight(1)
     }
     .width('100%')
     .height('100%')

@@ -11,7 +11,7 @@ import { util } from '@kit.ArkTS';
 import { uniformTypeDescriptor as utd } from '@kit.ArkData';
 import Logger from '../utils/Logger';
 import { http } from '@kit.NetworkKit';
-import { webview } from '@kit.ArkWeb';
+import { AtomicServiceWeb, AtomicServiceWebController } from '@kit.ArkUI';
 
 //两个临时无需权限组件
 import { pasteboard } from '@kit.BasicServicesKit';
@@ -73,9 +73,10 @@ export struct HomePage {
   @State scanIconModifier: SymbolGlyphModifier = new SymbolGlyphModifier($r('sys.symbol.qrcode')).fontSize('20vp');
   
   private controller: VideoController = new VideoController();
-  private webController: webview.WebviewController = new webview.WebviewController();
+  @State webController: AtomicServiceWebController = new AtomicServiceWebController();
   private webViewTimeoutId: number = 0;
   private currentExtractorUrl: string = '';
+  private collectedVideoUrls: Set<string> = new Set();
   // 多设备协作：接收视频
   private doInsertVideo(stateCode: number, bufferType: string, buffer: ArrayBuffer): void {
     if (stateCode != 0) {
@@ -1143,7 +1144,7 @@ export struct HomePage {
           .height(32)
           .margin({ right: 8 })
           .backgroundColor($r('sys.color.ohos_id_color_activated'))
-          .onClick(() => this.getHtmlFromWebView())
+          .onClick(() => this.processCollectedVideos())
         Button($r('app.string.close_btn'))
           .fontSize(12)
           .height(32)
@@ -1166,19 +1167,37 @@ export struct HomePage {
         .fontColor($r('sys.color.font_secondary'))
         .margin({ top: 2 , bottom: 2 })
       
-      Web({ src: this.webSrc, controller: this.webController })
-        .width('100%')
-        .layoutWeight(1)
-        .javaScriptAccess(true)
-        .domStorageAccess(true)
-        .mixedMode(MixedMode.All)
-        .onPageEnd(() => {
+      AtomicServiceWeb({
+        src: this.webSrc,
+        controller: this.webController,
+        mixedMode: MixedMode.All,
+        onLoadIntercept: (event: OnLoadInterceptEvent) => {
+          try {
+            const reqUrl = event.data.getRequestUrl();
+            if (reqUrl) {
+              const lowerUrl = reqUrl.toLowerCase();
+              for (const ext of this.videoExtensions) {
+                if (lowerUrl.includes(ext)) {
+                  this.collectedVideoUrls.add(reqUrl);
+                  break;
+                }
+              }
+            }
+          } catch (e) {
+            // ignore
+          }
+          return false;
+        },
+        onPageEnd: () => {
           this.loadProgress = 100;
           promptAction.showToast({ message: $r('app.string.page_load_complete') });
-        })
-        .onProgressChange((event) => {
+        },
+        onProgressChange: (event: OnProgressChangeEvent) => {
           if (event?.newProgress !== undefined) this.loadProgress = event.newProgress;
-        })
+        }
+      })
+        .width('100%')
+        .layoutWeight(1)
     }
     .width('100%')
     .height('100%')
@@ -1408,6 +1427,7 @@ export struct HomePage {
     this.currentExtractorUrl = url;
     this.loadProgress = 0;
     this.webSrc = url;
+    this.collectedVideoUrls.clear();
     this.webViewTimeoutId = setTimeout(() => {
       if (this.webViewVisible && this.loadProgress < 100) {
         this.clearWebViewTimeout();
@@ -1420,25 +1440,39 @@ export struct HomePage {
     promptAction.showToast({ message: $r('app.string.wait_for_page_load'), duration: 6000 });
   }
 
-  private getHtmlFromWebView(): void {
+  private async processCollectedVideos(): Promise<void> {
     this.clearWebViewTimeout();
-    this.webController.runJavaScript('document.documentElement.outerHTML').then(async (html: string) => {
-      this.extractedVideos = this.extractVideoLinks(html, this.currentExtractorUrl);
-      this.webViewVisible = false;
-      this.isExtracting = false;
-      if (this.extractedVideos.length === 0) {
-        promptAction.showToast({ message: $r('app.string.no_video_found') });
-      } else {
-        promptAction.showToast({ message: $r('app.string.found_videos_fetching_size', this.extractedVideos.length) });
-        // 异步获取视频大小并排序
-        await this.fetchVideoSizesAndSort();
-        promptAction.showToast({ message: $r('app.string.videos_sorted', this.extractedVideos.length) });
+    const videoItems: VideoLinkItem[] = [];
+    const addedUrls = new Set<string>();
+    for (const url of this.collectedVideoUrls) {
+      if (addedUrls.has(url)) continue;
+      addedUrls.add(url);
+      const lowerUrl = url.toLowerCase();
+      let format = 'unknown';
+      for (const ext of this.videoExtensions) {
+        if (lowerUrl.includes(ext)) {
+          format = ext.replace('.', '');
+          break;
+        }
       }
-    }).catch((err: BusinessError) => {
-      this.webViewVisible = false;
-      this.isExtracting = false;
-      promptAction.showToast({ message: $r('app.string.extract_failed', err.message) });
-    });
+      const item = new VideoLinkItem();
+      item.url = url;
+      item.type = 'resource';
+      item.format = format;
+      item.size = 0;
+      item.sizeText = '';
+      videoItems.push(item);
+    }
+    this.extractedVideos = videoItems;
+    this.webViewVisible = false;
+    this.isExtracting = false;
+    if (this.extractedVideos.length === 0) {
+      promptAction.showToast({ message: $r('app.string.no_video_found') });
+    } else {
+      promptAction.showToast({ message: $r('app.string.found_videos_fetching_size', this.extractedVideos.length) });
+      await this.fetchVideoSizesAndSort();
+      promptAction.showToast({ message: $r('app.string.videos_sorted', this.extractedVideos.length) });
+    }
   }
 
   private async startExtract(): Promise<void> {

@@ -1,215 +1,185 @@
-import { common } from '@kit.AbilityKit';
-import { hilog } from '@kit.PerformanceAnalysisKit';
+import { textToSpeech } from '@kit.CoreSpeechKit';//语音
 import { BusinessError } from '@kit.BasicServicesKit';
-
-import { image } from '@kit.ImageKit';
-import { photoAccessHelper } from '@kit.MediaLibraryKit';
-import { fileIo } from '@kit.CoreFileKit';
-
-import { DocScanPage } from '../YYTB/DocScan/DocScanPage';
+import router from '@ohos.router';
 import { WindowInfo } from '../utils/WindowInfo';
+
+let ttsEngine: textToSpeech.TextToSpeechEngine;
 
 @Entry
 @Component
 export struct SecondPage {
-  context: common.Context = getContext(this);
+  @ObjectLink mainWindowInfo: WindowInfo;
+  @StorageLink('networkVideoSrc') networkVideoSrc: string = '';
+  @StorageLink('isImmersiveTab') isImmersiveTab: boolean = false;
   @StorageProp('topRectHeight')
   topRectHeight: number = 0;
-  @StorageLink('isImmersiveStatusBar')
-  isImmersiveStatusBar: boolean = false;
   @StorageProp('bottomRectHeight')
   bottomRectHeight: number = 0;
-  @StorageLink('isImmersiveTab')
-  isImmersiveTab: boolean = false;
-  @ObjectLink mainWindowInfo: WindowInfo;
+  @State createCount: number = 0;
+  @StorageLink('isPlaying') isPlaying: boolean = false;
 
-  private imageSource: image.ImageSource | undefined = undefined;
-  @State chooseImage: PixelMap | undefined = undefined;
-  @State dataValues: string = '';
-  @Provide('pathStack') pathStack: NavPathStack = new NavPathStack()
-
-  @Builder
-  PageMap(name: string) {
-    if (name === 'documentScanner') {
-      DocScanPage()
-    }
+  aboutToAppear() {
+    // 保存当前页面信息到 AppStorage,供接续功能使用
+    AppStorage.setOrCreate('currentPageUrl', 'XHTB/TextToSpeechPage');
+    AppStorage.delete('currentRouteParams');
   }
 
-  private async selectImage() {
-    let uri = await this.openPhoto();
-    if (uri === undefined) {
-      hilog.error(0x0000, 'SecondPage', "Failed to get uri.");
-      return;
-    }
-    this.loadImage(uri);
-  }
-
-  private openPhoto(): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-      let photoPicker: photoAccessHelper.PhotoViewPicker = new photoAccessHelper.PhotoViewPicker();
-      photoPicker.select({
-        MIMEType: photoAccessHelper.PhotoViewMIMETypes.IMAGE_TYPE,
-        maxSelectNumber: 1
-      }).then((res: photoAccessHelper.PhotoSelectResult) => {
-        resolve(res.photoUris[0]);
-      }).catch((err: BusinessError) => {
-        hilog.error(0x0000, 'SecondPage', `Failed to get photo image uri. code：${err.code}，message：${err.message}`);
-        reject('');
-      })
-    })
-  }
-
-  private async loadImage(uri: string) {
+  aboutToDisappear() {
     try {
-      if (this.chooseImage) {
-        this.chooseImage.release();
+      const isBusy = ttsEngine?.isBusy();
+      if (isBusy) {
+        ttsEngine?.stop();
+        AppStorage.setOrCreate('isPlaying', false);
+        ttsEngine?.shutdown();
       }
-
-      let fileSource = await fileIo.open(uri, fileIo.OpenMode.READ_ONLY);
-      this.imageSource = image.createImageSource(fileSource.fd);
-      this.chooseImage = await this.imageSource.createPixelMap();
-      this.dataValues = '';
-    } catch (error) {
-      hilog.error(0x0000, 'SecondPage', `Image load failed: ${JSON.stringify(error)}`);
-    }
-  }
-
-  @Builder
-  MyTestMenu() {
-    Menu() {
-      MenuItem({
-        startIcon: $r("app.media.CIcon"),
-        content: $r('app.string.pickphotos'),
-        builder: (): void => {
-          this.selectImage();
-        }
-      })
-    }
-  }
-
-  // 手机端Menu：仅跨设备协作（仅图片）
-  @Builder
-  PhonePickMenu() {
-    Menu() {
-      // 本地选择
-      MenuItem({
-        startIcon: $r("app.media.CIcon"),
-        content: $r('app.string.pickphotos'),
-        builder: (): void => {
-          this.selectImage();
-        }
-      })
-    }
-  }
-
-  scroller: Scroller = new Scroller()
-
-  async aboutToDisappear(): Promise<void> {
-    // 释放图像资源
-    if (this.chooseImage) {
-      this.chooseImage.release();
-      this.chooseImage = undefined;
+    } catch (err) {
+      const error: BusinessError = err as BusinessError;
+      console.error(`The ttsEngine invoke error, the code is ${error.code}, the message is ${error.message}`);
     }
   }
 
   build() {
-    Column() {
-      // 顶部避让状态栏
-      if (!this.isImmersiveStatusBar) {
-        Column()
-          .height(px2vp(this.topRectHeight))
+    Column({ space: 0 }) {
+      Row() {
+        SymbolGlyph($r('sys.symbol.chevron_left'))
+          .fontSize(24)
+          .fontColor([$r('sys.color.font_primary')])
+          .margin({ left: 16 })
+          .onClick(() => router.back())
       }
+      .width('100%')
+      .height(56)
+      .padding({ top: px2vp(this.topRectHeight) })
 
-      if (this.chooseImage) {
-        Row() {
-          Button($r('app.string.pick'))
-              .type(ButtonType.Capsule)
-              .fontColor(Color.White)
-              .width('20%')
-              .margin({ right: 10 })
-              .height(50)
-              .backgroundColor($r('sys.color.ohos_id_color_activated'))
-              .onClick(() => {
-                this.selectImage();
-              })
-          Button('×')
-            .type(ButtonType.Capsule)
-            .fontColor(Color.White)
-            .alignSelf(ItemAlign.Center)
-            .width('20%')
-            .height(50)
-            .backgroundColor($r('sys.color.ohos_id_color_activated'))
-            .onClick(() => {
-              this.chooseImage = undefined;
-              this.dataValues = '';
-            })
-        }
-        .padding({ top: 5 })
+      Column({ space: 20 }) {
+        Text($r('app.string.sub_title2_value1'))
+          .fontSize(24)
+          .fontWeight(FontWeight.Bold)
+          .margin({ top: 20 })
 
-        Stack({ alignContent: Alignment.TopStart }) {
-          Scroll(this.scroller) {
-            Column() {
-              Text(this.dataValues)
-                .copyOption(CopyOptions.LocalDevice)
-                .width('100%')
-                .fontColor($r('sys.color.font_primary'))
-              Image(this.chooseImage)
-                .objectFit(ImageFit.Auto)
+        TextArea({ placeholder: $r('app.string.speak'), text: this.networkVideoSrc })
+          .margin({
+            left: $r('sys.float.padding_level16'),
+            right: $r('sys.float.padding_level16'),
+          })
+          .onChange((networkVideoSrc: string) => {
+            this.networkVideoSrc = networkVideoSrc;
+            AppStorage.set('networkVideoSrc', networkVideoSrc);
+          })
+        Text($r('app.string.ai_core_speech_support'))
+          .padding({ top: 2 , left: 24, right: 24 })
+          .fontSize(11)
+          .maxFontScale(1.75)
+          .width('100%')
+          .fontColor($r('app.color.font_secondary'))
+          .fontFamily('HarmonyHeiTi')
+          .textAlign(TextAlign.Center)
+        Row({ space: 40 }) {
+          Button({ type: ButtonType.Circle, stateEffect: true }) {
+            SymbolGlyph(this.isPlaying ? $r('sys.symbol.pause') : $r('sys.symbol.play'))
+              .fontSize(24)
+              .fontColor([$r('sys.color.icon_primary')])
+          }
+          .margin({ top: 10 })
+          .backgroundColor(Color.Transparent)
+          .onClick(() => {
+            try {
+              this.createByCallback();
+            } catch (err) {
+              const error: BusinessError = err as BusinessError;
+              console.error(`CreateEngine error, the code is ${error.code}, the message is ${error.message}`);
             }
-            .width('100%')
-            .padding({ bottom: px2vp(this.bottomRectHeight) + (this.isImmersiveTab ? 84 : 0) })
-          }
-          .scrollable(ScrollDirection.Vertical)
-          .scrollBar(BarState.On)
-          .scrollBarColor(Color.Gray)
-          .scrollBarWidth(5)
-          .friction(0.6)
-          .edgeEffect(EdgeEffect.None)
-          .flexGrow(1)
-          .layoutWeight(1)
-          .expandSafeArea([SafeAreaType.SYSTEM])
-        }
-      } else {
-        // 无图片时：功能区域上下居中
-        Column() {
-          Row() {
-            Button($r('app.string.pick'))
-                .type(ButtonType.Capsule)
-                .fontColor(Color.White)
-                .width('20%')
-                .margin({ right: 10 })
-                .height(50)
-                .backgroundColor($r('sys.color.ohos_id_color_activated'))
-                .onClick(() => {
-                  this.selectImage();
-                })
+          })
+          .width('40vp')
 
+          Button({ type: ButtonType.Circle, stateEffect: true }) {
+            SymbolGlyph($r('sys.symbol.xmark'))
+              .fontSize(24)
+              .fontColor([$r('sys.color.icon_primary')])
           }
-          .padding({ top: 5 })
+          .margin({ top: 10 })
+          .backgroundColor(Color.Transparent)
+          .onClick(() => {
+            try {
+              ttsEngine?.stop();
+              ttsEngine?.shutdown();
+            } catch (err) {
+              const error: BusinessError = err as BusinessError;
+              console.error(`The ttsEngine invoke error, the code is ${error.code}, the message is ${error.message}`);
+            }
+            AppStorage.setOrCreate('isPlaying', false);
+          })
+          .width('40vp')
         }
-        .layoutWeight(1)
+        .width('100%')
         .justifyContent(FlexAlign.Center)
       }
+      .width('100%')
+      .layoutWeight(1)
     }
-    .width('100%')
     .height('100%')
-    .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
+    .padding({ bottom: px2vp(this.bottomRectHeight) + (this.isImmersiveTab ? 84 : 0) })
   }
 
-  doInsertPicture(stateCode: number, bufferType: string, buffer: ArrayBuffer): void {
-    if (stateCode != 0) {
-      return;
-    }
-    if (bufferType == "general.image") {
-      let imgSource = image.createImageSource(buffer);
-      imgSource.createPixelMap().then((pixelMap: image.PixelMap) => {
-        this.chooseImage = pixelMap;
-        this.dataValues = '';
-
-        this.imageSource = imgSource;
-      }).catch((error: BusinessError) => {
-        hilog.error(0x0000, 'SecondPage', `Failed to process image from other device: ${JSON.stringify(error)}`);
+  createByCallback() {
+    let extraParam: Record<string, string> = { 'style': 'interaction-broadcast', 'locate': 'CN', 'name': 'EngineName' };
+    let initParamsInfo: textToSpeech.CreateEngineParams = {
+      language: 'zh-CN',
+      person: 0,
+      online: 1,
+      extraParams: extraParam
+    };
+    textToSpeech.createEngine(initParamsInfo,
+      (err: BusinessError, textToSpeechEngine: textToSpeech.TextToSpeechEngine) => {
+        if (!err) {
+          ttsEngine = textToSpeechEngine;
+          this.createCount++;
+          this.speak();
+        } else {
+          console.log('Fail to createEngine.');
+        }
       });
-    }
   }
+
+  speak() {
+    let speakListener: textToSpeech.SpeakListener = {
+      onStart(requestId: string, response: textToSpeech.StartResponse) {
+        console.log('onStart');
+        AppStorage.setOrCreate('isPlaying', true);
+      },
+      onComplete(requestId: string, response: textToSpeech.CompleteResponse) {
+        console.log('onComplete');
+        AppStorage.setOrCreate('isPlaying', false);
+      },
+      onStop(requestId: string, response: textToSpeech.StopResponse) {
+        console.log('onStop');
+        AppStorage.setOrCreate('isPlaying', false);
+        ttsEngine?.shutdown();
+      },
+      onData(requestId: string, audio: ArrayBuffer, response: textToSpeech.SynthesisResponse) {
+        console.log('onData');
+      },
+      onError(requestId: string, errorCode: number, errorMessage: string) {
+        console.log('onError');
+        AppStorage.setOrCreate('isPlaying', false);
+        ttsEngine?.shutdown();
+      }
+    };
+    ttsEngine?.setListener(speakListener);
+    let extraParam: Record<string, string | number> = {
+      'queueMode': 0,
+      'speed': 1,
+      'volume': 2,
+      'pitch': 1,
+      'languageContext': 'zh-CN',
+      'audioType': 'pcm',
+      'soundChannel': 3,
+      'playType': 1
+    }
+    let speakParams: textToSpeech.SpeakParams = {
+      requestId: '123456-a',
+      extraParams: extraParam
+    };
+    ttsEngine?.speak(this.networkVideoSrc, speakParams);//originalText
+  };
 }
