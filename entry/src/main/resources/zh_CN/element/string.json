@@ -70,7 +70,7 @@
     },
     {
       "name":"Second",
-      "value":"OCR"
+      "value":"文本转语音"
     },
     {
       "name":"Mine",
@@ -785,6 +785,10 @@
     {
       "name": "atomic_service_bar_immersive_disabled",
       "value": "元服务胶囊沉浸已关闭"
+    },
+    {
+      "name": "atomic_service_knock_not_supported",
+      "value": "APP支持碰一碰分享，元服务暂不支持"
     }
   ]
 }

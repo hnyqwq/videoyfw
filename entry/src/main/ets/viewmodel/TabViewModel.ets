@@ -2,9 +2,9 @@ import { TabDataModel } from '../model/TabDataModel';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { common } from '@kit.AbilityKit';
 
-// 兜底默认值，需与 string.json 中资源值保持一致（Home=主页, Second=OCR, Mine=我的）
+// 兜底默认值，需与 string.json 中资源值保持一致（Home=主页, Second=文本转语音, Mine=我的）
 const DEFAULT_TAB_HOME: string = '主页';
-const DEFAULT_TAB_SECOND: string = 'OCR';
+const DEFAULT_TAB_SECOND: string = '文本转语音';
 const DEFAULT_TAB_MINE: string = '我的';
 
 export class TabViewModel {

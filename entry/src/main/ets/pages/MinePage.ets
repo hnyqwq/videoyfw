@@ -197,7 +197,7 @@ export struct MinePage {
             .margin({ top: 4 })
         }
         .width('100%')
-        .padding({ top: (this.isImmersiveStatusBar ? 0 : px2vp(this.topRectHeight)) + (this.isAtomicServiceBarImmersive ? 0 : 38) + 10, bottom: 30 })
+        .padding({ top: (this.isImmersiveStatusBar ? 0 : px2vp(this.topRectHeight)) + (this.isAtomicServiceBarImmersive ? 0 : 50) + 10, bottom: 30 })
 
         // 菜单列表区域
         Column() {

@@ -112,7 +112,7 @@ export struct HomeImmersive {
       case 0:
         return $r('sys.symbol.media_center');
       case 1:
-        return $r('sys.symbol.doc_text');
+        return $r('sys.symbol.mic_fill');
       case 2:
         return $r('sys.symbol.person');
       default:

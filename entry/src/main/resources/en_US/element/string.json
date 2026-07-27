@@ -70,7 +70,7 @@
     },
     {
       "name":"Second",
-      "value":"OCR"
+      "value":"Text to Speech"
     },
     {
       "name":"Mine",
@@ -785,6 +785,10 @@
     {
       "name": "atomic_service_bar_immersive_disabled",
       "value": "Atomic service bar immersive disabled"
+    },
+    {
+      "name": "atomic_service_knock_not_supported",
+      "value": "The app supports knock share, but atomic service does not yet support it"
     }
   ]
 }

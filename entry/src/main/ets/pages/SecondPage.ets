@@ -50,7 +50,7 @@ export struct SecondPage {
       }
       .width('100%')
       .height(56)
-      .padding({ top: px2vp(this.topRectHeight) + (this.isAtomicServiceBarImmersive ? 0 : 38) })
+      .padding({ top: px2vp(this.topRectHeight) + (this.isAtomicServiceBarImmersive ? 0 : 50) })
 
       Column({ space: 20 }) {
         Text($r('app.string.sub_title2_value1'))

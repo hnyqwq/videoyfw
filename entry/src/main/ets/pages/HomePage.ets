@@ -492,7 +492,7 @@ export struct HomePage {
         // 顶部避让状态栏和元服务胶囊
         if (!this.isImmersiveStatusBar || !this.isAtomicServiceBarImmersive) {
           Column()
-            .height((this.isImmersiveStatusBar ? 0 : px2vp(this.topRectHeight)) + (this.isAtomicServiceBarImmersive ? 0 : 38))
+            .height((this.isImmersiveStatusBar ? 0 : px2vp(this.topRectHeight)) + (this.isAtomicServiceBarImmersive ? 0 : 50))
         }
         // 视频播放区域
       Stack() {
@@ -1082,8 +1082,7 @@ export struct HomePage {
 
 
         //碰一碰提示
-        Text(deviceInfo.deviceType === 'tablet' ?
-          $r('app.string.large_device_hint') : $r('app.string.nowplayingon'))
+        Text($r('app.string.atomic_service_knock_not_supported'))
           .padding({ top: 10 , left: 24, right: 24 })
           .maxLines(5)
           .fontSize(11)
@@ -1093,13 +1092,6 @@ export struct HomePage {
           .fontColor($r('app.color.font_secondary'))
           .fontFamily('HarmonyHeiTi')
           .textAlign(TextAlign.Center)
-        if (this.shouldShowCards()) {
-          KnockShareGuideCard({
-            cardSwiperResources: this.getCardSwiperResources(),
-            isKnockShareSupported: this.isKnockShareSupported
-          })
-            .padding({ top: 2 })
-        }
 
         /*Text(this.myFileName)
           .focusable(true)
