@@ -51,40 +51,69 @@ export struct SecondPage {
       .height(56)
       .padding({ top: px2vp(this.topRectHeight) + (this.isAtomicServiceBarImmersive ? 0 : 50) })
 
-      Column({ space: 20 }) {
-        Text($r('app.string.sub_title2_value1'))
-          .fontSize(24)
-          .fontWeight(FontWeight.Bold)
-          .margin({ top: 20 })
+      Scroll() {
+        Column({ space: 20 }) {
+          Text($r('app.string.sub_title2_value1'))
+            .fontSize(24)
+            .fontWeight(FontWeight.Bold)
+            .margin({ top: 20 })
 
-        TextArea({ placeholder: $r('app.string.speak'), text: this.networkVideoSrc })
-          .margin({
-            left: $r('sys.float.padding_level16'),
-            right: $r('sys.float.padding_level16'),
-          })
-          .onChange((networkVideoSrc: string) => {
-            this.networkVideoSrc = networkVideoSrc;
-            AppStorage.set('networkVideoSrc', networkVideoSrc);
-          })
-        Text($r('app.string.ai_core_speech_support'))
-          .padding({ top: 2 , left: 24, right: 24 })
-          .fontSize(11)
-          .maxFontScale(1.75)
-          .width('100%')
-          .fontColor($r('app.color.font_secondary'))
-          .fontFamily('HarmonyHeiTi')
-          .textAlign(TextAlign.Center)
-        Row({ space: 40 }) {
-          Button({ type: ButtonType.Circle, stateEffect: true }) {
-            SymbolGlyph(this.isPlaying ? $r('sys.symbol.pause') : $r('sys.symbol.play'))
-              .fontSize(24)
-              .fontColor([$r('sys.color.icon_primary')])
-          }
-          .margin({ top: 10 })
-          .backgroundColor(Color.Transparent)
-          .onClick(() => {
-            if (this.isPlaying) {
-              // 正在播放，点击停止
+          TextArea({ placeholder: $r('app.string.speak'), text: this.networkVideoSrc })
+            .margin({
+              left: $r('sys.float.padding_level16'),
+              right: $r('sys.float.padding_level16'),
+            })
+            .onChange((networkVideoSrc: string) => {
+              this.networkVideoSrc = networkVideoSrc;
+              AppStorage.set('networkVideoSrc', networkVideoSrc);
+            })
+          Text($r('app.string.ai_core_speech_support'))
+            .padding({ top: 2 , left: 24, right: 24 })
+            .fontSize(11)
+            .maxFontScale(1.75)
+            .width('100%')
+            .fontColor($r('app.color.font_secondary'))
+            .fontFamily('HarmonyHeiTi')
+            .textAlign(TextAlign.Center)
+          Row({ space: 40 }) {
+            Button({ type: ButtonType.Circle, stateEffect: true }) {
+              SymbolGlyph(this.isPlaying ? $r('sys.symbol.pause') : $r('sys.symbol.play'))
+                .fontSize(24)
+                .fontColor([$r('sys.color.icon_primary')])
+            }
+            .margin({ top: 10 })
+            .backgroundColor(Color.Transparent)
+            .onClick(() => {
+              if (this.isPlaying) {
+                // 正在播放，点击停止
+                try {
+                  ttsEngine?.stop();
+                  ttsEngine?.shutdown();
+                } catch (err) {
+                  const error: BusinessError = err as BusinessError;
+                  console.error(`The ttsEngine invoke error, the code is ${error.code}, the message is ${error.message}`);
+                }
+                AppStorage.setOrCreate('isPlaying', false);
+              } else {
+                // 未播放，点击开始
+                try {
+                  this.createByCallback();
+                } catch (err) {
+                  const error: BusinessError = err as BusinessError;
+                  console.error(`CreateEngine error, the code is ${error.code}, the message is ${error.message}`);
+                }
+              }
+            })
+            .width('40vp')
+
+            Button({ type: ButtonType.Circle, stateEffect: true }) {
+              SymbolGlyph($r('sys.symbol.xmark'))
+                .fontSize(24)
+                .fontColor([$r('sys.color.icon_primary')])
+            }
+            .margin({ top: 10 })
+            .backgroundColor(Color.Transparent)
+            .onClick(() => {
               try {
                 ttsEngine?.stop();
                 ttsEngine?.shutdown();
@@ -93,42 +122,19 @@ export struct SecondPage {
                 console.error(`The ttsEngine invoke error, the code is ${error.code}, the message is ${error.message}`);
               }
               AppStorage.setOrCreate('isPlaying', false);
-            } else {
-              // 未播放，点击开始
-              try {
-                this.createByCallback();
-              } catch (err) {
-                const error: BusinessError = err as BusinessError;
-                console.error(`CreateEngine error, the code is ${error.code}, the message is ${error.message}`);
-              }
-            }
-          })
-          .width('40vp')
-
-          Button({ type: ButtonType.Circle, stateEffect: true }) {
-            SymbolGlyph($r('sys.symbol.xmark'))
-              .fontSize(24)
-              .fontColor([$r('sys.color.icon_primary')])
+            })
+            .width('40vp')
           }
-          .margin({ top: 10 })
-          .backgroundColor(Color.Transparent)
-          .onClick(() => {
-            try {
-              ttsEngine?.stop();
-              ttsEngine?.shutdown();
-            } catch (err) {
-              const error: BusinessError = err as BusinessError;
-              console.error(`The ttsEngine invoke error, the code is ${error.code}, the message is ${error.message}`);
-            }
-            AppStorage.setOrCreate('isPlaying', false);
-          })
-          .width('40vp')
+          .width('100%')
+          .justifyContent(FlexAlign.Center)
+          .padding({ bottom: 20 })
         }
         .width('100%')
-        .justifyContent(FlexAlign.Center)
       }
       .width('100%')
       .layoutWeight(1)
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring)
     }
     .height('100%')
     .padding({ bottom: px2vp(this.bottomRectHeight) })
