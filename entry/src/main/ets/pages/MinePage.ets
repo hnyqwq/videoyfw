@@ -125,38 +125,6 @@ export struct MinePage {
     });
   }
 
-  // 保存沉浸设置（通用方法）
-  private async saveImmersiveSetting(key: string, value: boolean): Promise<void> {
-    try {
-      if (!this.preferencesStore) {
-        this.preferencesStore = await preferences.getPreferences(this.context, 'immersive_settings');
-      }
-      await this.preferencesStore.put(key, value);
-      await this.preferencesStore.flush();
-      console.info(`${key}设置已保存:`, value);
-    } catch (error) {
-      console.error(`保存${key}设置失败:`, error);
-    }
-  }
-
-  // 设置长按菜单
-  @Builder
-  MyMenu() {
-    Menu() {
-      MenuItem({ startIcon: this.iconStr, content: $r('app.string.minelongpress') })
-        .onClick(() => {
-          let want: Want = {
-            "action": "ohos.want.action.viewData",
-            "entities": ["entity.system.browsable"],
-            uri: 'https://www.hnyqwq.cn/hvideo',
-          }
-          let context = getContext(this) as common.UIAbilityContext;
-          context.startAbility(want)
-          console.info(`MenuItem ability succeed`)
-        })
-    }
-  }
-
   // 预览组件
   @Builder
   MyPreview() {
@@ -177,12 +145,6 @@ export struct MinePage {
             .width(70)
             .height(70)
             .borderRadius(35)
-            .bindContextMenu(this.MyMenu, ResponseType.LongPress, {
-              preview: this.MyPreview,
-              previewAnimationOptions: {
-                hoverScale: [1.0, 0.95]
-              }
-            })
 
           Text($r('app.string.appname'))
             .fontWeight(FontWeight.Bold)
