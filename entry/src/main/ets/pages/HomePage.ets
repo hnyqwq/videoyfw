@@ -902,7 +902,7 @@ export struct HomePage {
     }
     .width('100%')
     .justifyContent(FlexAlign.Start)
-    .padding({ bottom: px2vp(this.bottomRectHeight) })
+    .padding({ bottom: Math.max(px2vp(this.bottomRectHeight), 28) })
   }
   .width('100%')
   .height('100%')

@@ -172,6 +172,6 @@ export struct HomeImmersive {
       .width('100%')
       .barBackgroundColor($r('sys.color.ohos_id_color_background'))
       .expandSafeArea([SafeAreaType.SYSTEM])
-      .padding({ bottom: px2vp(this.bottomRectHeight) })
+      .padding({ bottom: Math.max(px2vp(this.bottomRectHeight), 28) })
     }
 }

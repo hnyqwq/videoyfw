@@ -386,13 +386,13 @@ export struct MinePage {
         .alignItems(HorizontalAlign.Center)
       }
       .width('100%')
-      .padding({ bottom: px2vp(this.bottomRectHeight) })
+      .padding({ bottom: Math.max(px2vp(this.bottomRectHeight), 28) })
     }
     .width('100%')
     .height('100%')
     .scrollBar(BarState.Off)
     .edgeEffect(EdgeEffect.Spring)
-    .padding({ bottom: px2vp(this.bottomRectHeight) })
+    .padding({ bottom: Math.max(px2vp(this.bottomRectHeight), 28) })
     .backgroundColor($r('sys.color.ohos_id_color_background'))
     .expandSafeArea([SafeAreaType.SYSTEM])
 

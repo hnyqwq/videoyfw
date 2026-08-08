@@ -210,7 +210,7 @@ export struct Home {
       .height('100%')
       .width('100%')
       .barBackgroundColor($r('sys.color.ohos_id_color_background'))
-      .padding({ bottom: px2vp(this.bottomRectHeight) })
+      .padding({ bottom: Math.max(px2vp(this.bottomRectHeight), 28) })
     }
   }
 }

@@ -137,7 +137,7 @@ export struct SecondPage {
       .edgeEffect(EdgeEffect.Spring)
     }
     .height('100%')
-    .padding({ bottom: px2vp(this.bottomRectHeight) })
+    .padding({ bottom: Math.max(px2vp(this.bottomRectHeight), 28) })
     .backgroundColor($r('sys.color.ohos_id_color_background'))
   }
 
