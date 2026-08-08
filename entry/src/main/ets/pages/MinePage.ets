@@ -269,22 +269,54 @@ export struct MinePage {
                     .fontColor([$r('sys.color.icon_primary')])
 
                   if (item.id === 'vipownsetting') {
-                    Column() {
-                      Text($r('app.string.invite_test'))
-                        .fontSize($r('sys.float.Subtitle_M'))
-                        .fontWeight(FontWeight.Medium)
-                        .fontColor($r('sys.color.font_primary'))
-                        .margin({ left: $r('sys.float.padding_level8') })
-                      Text(this.inviteTestUrl)
-                        .fontSize($r('sys.float.Caption_S'))
-                        .fontColor($r('sys.color.font_tertiary'))
-                        .margin({ left: $r('sys.float.padding_level8'), top: 2 })
-                        .maxLines(1)
-                        .textOverflow({ overflow: TextOverflow.Ellipsis })
-                    }
-                    .alignItems(HorizontalAlign.Start)
-                    .layoutWeight(1)
-                  } else if (item.id === 'browsinghistory') {
+                     Column() {
+                       Text($r('app.string.invite_test'))
+                         .fontSize($r('sys.float.Subtitle_M'))
+                         .fontWeight(FontWeight.Medium)
+                         .fontColor($r('sys.color.font_primary'))
+                         .margin({ left: $r('sys.float.padding_level8') })
+                       Text(this.inviteTestUrl)
+                         .fontSize($r('sys.float.Caption_S'))
+                         .fontColor($r('sys.color.font_tertiary'))
+                         .margin({ left: $r('sys.float.padding_level8'), top: 2 })
+                         .maxLines(1)
+                         .textOverflow({ overflow: TextOverflow.Ellipsis })
+                     }
+                     .alignItems(HorizontalAlign.Start)
+                     .layoutWeight(1)
+                   } else if (item.id === 'mycollection') {
+                     Column() {
+                       Text($r('app.string.mine3'))
+                         .fontSize($r('sys.float.Subtitle_M'))
+                         .fontWeight(FontWeight.Medium)
+                         .fontColor($r('sys.color.font_primary'))
+                         .margin({ left: $r('sys.float.padding_level8') })
+                       Text('https://space.bilibili.com/338142387')
+                         .fontSize($r('sys.float.Caption_S'))
+                         .fontColor($r('sys.color.font_tertiary'))
+                         .margin({ left: $r('sys.float.padding_level8'), top: 2 })
+                         .maxLines(1)
+                         .textOverflow({ overflow: TextOverflow.Ellipsis })
+                     }
+                     .alignItems(HorizontalAlign.Start)
+                     .layoutWeight(1)
+                   } else if (item.id === 'mylike') {
+                     Column() {
+                       Text($r('app.string.mine4'))
+                         .fontSize($r('sys.float.Subtitle_M'))
+                         .fontWeight(FontWeight.Medium)
+                         .fontColor($r('sys.color.font_primary'))
+                         .margin({ left: $r('sys.float.padding_level8') })
+                       Text('https://www.douyin.com/user/MS4wLjABAAAAxFrsP4LK-iS49UNXIoHz_dwT1JU3FRHrvrKLs7HigGg')
+                         .fontSize($r('sys.float.Caption_S'))
+                         .fontColor($r('sys.color.font_tertiary'))
+                         .margin({ left: $r('sys.float.padding_level8'), top: 2 })
+                         .maxLines(1)
+                         .textOverflow({ overflow: TextOverflow.Ellipsis })
+                     }
+                     .alignItems(HorizontalAlign.Start)
+                     .layoutWeight(1)
+                   } else if (item.id === 'browsinghistory') {
                     Column() {
                       Text($r('app.string.mine5'))
                         .fontSize($r('sys.float.Subtitle_M'))
@@ -308,7 +340,7 @@ export struct MinePage {
                       .layoutWeight(1)
                   }
 
-                  if (item.id !== 'vipownsetting' && item.id !== 'browsinghistory') {
+                  if (item.id !== 'vipownsetting' && item.id !== 'browsinghistory' && item.id !== 'mycollection' && item.id !== 'mylike') {
                     Image($r('sys.media.ohos_ic_public_arrow_right'))
                       .width(16)
                       .height(16)
@@ -328,8 +360,20 @@ export struct MinePage {
                       this.copyLinkToClipboard(this.blogUrl);
                       return;
                     }
-                    if (item.uri) {
-                      this.openWithFallback(item.uri, item.webUrl);
+                    if (item.id === 'mycollection') {
+                      this.copyLinkToClipboard('https://space.bilibili.com/338142387');
+                      return;
+                    }
+                    if (item.id === 'mylike') {
+                      this.copyLinkToClipboard('https://www.douyin.com/user/MS4wLjABAAAAxFrsP4LK-iS49UNXIoHz_dwT1JU3FRHrvrKLs7HigGg');
+                      return;
+                    }
+                    if (item.webUrl) {
+                      this.openInWebView(item.webUrl, item.text);
+                    } else if (item.uri && (item.uri.startsWith('http://') || item.uri.startsWith('https://'))) {
+                      this.openInWebView(item.uri, item.text);
+                    } else {
+                      promptAction.showToast({ message: '元服务暂不支持跳转外部应用' });
                     }
                   })
               }
