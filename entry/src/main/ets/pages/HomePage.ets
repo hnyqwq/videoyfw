@@ -54,7 +54,8 @@ export struct HomePage {
   @StorageLink('isAtomicServiceBarImmersive') isAtomicServiceBarImmersive: boolean = false;
   @StorageProp('bottomRectHeight') bottomRectHeight: number = 0;
   @StorageProp('topRectHeight') topRectHeight: number = 0;
-  
+  @State isPcDevice: boolean = deviceInfo.deviceType === '2in1';
+
   // 网页视频提取相关状态
   @State showVideoExtractor: boolean = false; // 是否显示视频提取面板
   @State extractorUrl: string = ''; // 输入的网页链接
@@ -750,6 +751,10 @@ export struct HomePage {
           .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
           .border({ width: 1, color: $r('sys.color.ohos_id_color_list_separator') })
           .onClick(() => {
+            if (this.isPcDevice) {
+              promptAction.showToast({ message: $r('app.string.status_bar_not_supported_pc') });
+              return;
+            }
             window.getLastWindow(this.context).then((win: window.Window) => {
               const cur = win.getPreferredOrientation();
               if (cur === window.Orientation.PORTRAIT || cur === window.Orientation.PORTRAIT_INVERTED) {
@@ -757,13 +762,11 @@ export struct HomePage {
                 win.setPreferredOrientation(window.Orientation.AUTO_ROTATION_LANDSCAPE);
                 AppStorage.setOrCreate('isLandscape', true);
               } else {
-                // 当前横屏，切回竖屏
                 win.setPreferredOrientation(this.orientationBeforeFullscreen);
                 AppStorage.setOrCreate('isLandscape', false);
               }
             }).catch(() => {});
 
-            //横屏 全屏 填充
             this.controller.requestFullscreen(true);
             window.getLastWindow(this.context).then((win) => {
               win.setPreferredOrientation(window.Orientation.LANDSCAPE);
@@ -794,6 +797,10 @@ export struct HomePage {
           .backgroundColor($r('sys.color.ohos_id_color_sub_background'))
           .border({ width: 1, color: $r('sys.color.ohos_id_color_list_separator') })
           .onClick(() => {
+            if (this.isPcDevice) {
+              promptAction.showToast({ message: $r('app.string.status_bar_not_supported_pc') });
+              return;
+            }
             window.getLastWindow(this.context).then((win: window.Window) => {
               const cur = win.getPreferredOrientation();
               if (cur === window.Orientation.PORTRAIT || cur === window.Orientation.PORTRAIT_INVERTED) {
