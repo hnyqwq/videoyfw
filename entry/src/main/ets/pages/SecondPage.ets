@@ -214,6 +214,6 @@ export struct SecondPage {
       requestId: '123456-a',
       extraParams: extraParam
     };
-    ttsEngine?.speak(this.networkVideoSrc, speakParams);//originalText
+    ttsEngine?.speak('音频由AI生成。' + this.networkVideoSrc, speakParams);
   };
 }
