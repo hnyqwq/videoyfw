@@ -30,3 +30,7 @@ HarmonyOS APP ๑>ᴗO๑ —— by hnyqwq
 
 - 项目基于 HarmonyOS SDK 开发，使用 ArkTS 编写。
 - 使用 HVIGOR 构建工具进行项目构建。
+
+## 开源协议
+
+本项目基于 [GPL-3.0](./LICENSE) 协议开源。
